@@ -1,0 +1,48 @@
+import {
+  ResumeSearchParams,
+  Resume,
+  PaginatedResponse,
+} from "@/types/resume-types";
+import { useQuery } from "@tanstack/react-query";
+
+export const fetchResumes = async (
+  params: ResumeSearchParams
+): Promise<PaginatedResponse<Resume>> => {
+  const queryParams = new URLSearchParams();
+  if (params.page) {
+    queryParams.set("page", params.page.toString());
+  }
+  if (params.per_page) {
+    queryParams.set("per_page", params.per_page.toString());
+  }
+
+  if (params.title && params.title.length >= 2) {
+    queryParams.set("title", params.title);
+  }
+
+  const response = await fetch(
+    `https://jsk-co.com/api/resumes?${queryParams.toString()}`,
+    {
+      //   next: { revalidate: 3600 },
+      headers: {
+        Authorization:
+          "Bearer 3|aEbpCRb3dEf0gV3YyrmjFpmGdkEyYGxJue9ResHtb33d8a02",
+      },
+      cache: "no-store",
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch resumes");
+  }
+
+  return response.json();
+};
+
+export const useResumes = (params: ResumeSearchParams) => {
+  return useQuery({
+    queryKey: ["resumes", params],
+    queryFn: () => fetchResumes(params),
+    enabled: !params?.title || (params.title?.length ?? 0) >= 2,
+  });
+};

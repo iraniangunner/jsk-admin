@@ -21,7 +21,9 @@ import {
   Shield,
   Building,
   Clock,
+  ChevronRight,
 } from "lucide-react";
+import Link from "next/link";
 
 // Format date to Persian-friendly format
 const formatDate = (dateString: any) => {
@@ -43,15 +45,24 @@ export function ResumeDetails({ resume }: { resume: any }) {
 
   const submissionDate = formatDate(resume.created_at);
 
-// Calculate time since submission
-//   const timeSinceSubmission = formatDistanceToNow(new Date(resume.created_at), {
-//     addSuffix: true,
-//   });
+  // Calculate time since submission
+  //   const timeSinceSubmission = formatDistanceToNow(new Date(resume.created_at), {
+  //     addSuffix: true,
+  //   });
 
   return (
-    <div className="space-y-6 rtl">
+    <div className="space-y-6">
       <Card>
         <CardHeader className="pb-2">
+          <div className="mb-6 bg-gray-200 rounded-sm">
+            <Link
+              href="/resumes"
+              className="flex items-center p-2 text-sm"
+            >
+              <ChevronRight className="flex justify-center items-center" />
+              <span>بازگشت به رزومه ها</span>
+            </Link>
+          </div>
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div>
               <CardTitle className="text-2xl">{resume.name}</CardTitle>

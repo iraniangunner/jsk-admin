@@ -1,3 +1,5 @@
+import { useQueryClient, useMutation } from "@tanstack/react-query";
+
 import {
   ResumeSearchParams,
   Resume,
@@ -39,10 +41,38 @@ export const fetchResumes = async (
   return response.json();
 };
 
-export const useResumes = (params: ResumeSearchParams) => {
+export const deleteResumeById = async (id: number): Promise<void> => {
+  const response = await fetch(`https://jsk-co.com/api/resumes/${id}`, {
+    method: "DELETE",
+    headers: {
+      Authorization:
+        "Bearer 3|aEbpCRb3dEf0gV3YyrmjFpmGdkEyYGxJue9ResHtb33d8a02",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to delete resume");
+  }
+
+  return;
+};
+
+export const getResumes = (params: ResumeSearchParams) => {
   return useQuery({
     queryKey: ["resumes", params],
     queryFn: () => fetchResumes(params),
     enabled: !params?.title || (params.title?.length ?? 0) >= 2,
+  });
+};
+
+export const deleteResume = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteResumeById,
+    onSuccess: () => {
+      // Invalidate the resumes query to refetch data after deletion
+      queryClient.invalidateQueries({ queryKey: ["resumes"] });
+    },
   });
 };

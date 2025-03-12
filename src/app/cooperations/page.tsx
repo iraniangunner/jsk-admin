@@ -5,7 +5,7 @@ export default async function Cooperation() {
   const cooperations = await getCooperations();
   return (
     <div className="my-6 mx-8 mt-12">
-      <div className="max-w-[960px] mx-auto">
+      <div className="mx-auto">
         <h1 className="my-12 p-4 text-2xl text-center font-bold">
           همکاری شرکت ها
         </h1>

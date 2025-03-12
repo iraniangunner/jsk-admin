@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CaretSortIcon, DotsHorizontalIcon } from "@radix-ui/react-icons";
 import {
   type ColumnDef,
@@ -23,12 +23,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -41,13 +42,17 @@ import {
 import {
   FileText,
   Eye,
+  Trash2,
   Loader2,
   TriangleAlert,
   ChevronRightIcon,
   ChevronLeftIcon,
 } from "lucide-react";
 import { ResumeSearchParams, Resume } from "@/types/resume-types";
-import { useResumes } from "@/hooks/useResume";
+import { deleteResume, getResumes } from "@/hooks/useResume";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import Link from "next/link";
 
 // Format date to a more readable format
 function formatDate(dateString: string) {
@@ -69,17 +74,21 @@ export function ResumeTable() {
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [title, setTitle] = useState("");
+  const [appliedTitle, setAppliedTitle] = useState("");
+  const [forcePage, setForcePage] = useState<number | undefined>(undefined);
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   const searchParams: ResumeSearchParams = {
     page: page ? page : undefined,
     per_page: itemsPerPage ? itemsPerPage : undefined,
-    title: title.length >= 2 ? title : undefined,
+    title: appliedTitle.length >= 2 ? appliedTitle : undefined,
   };
 
-  const { data, isLoading, isError } = useResumes(searchParams);
+  const { data, isLoading, isError } = getResumes(searchParams);
 
   const handlePageChange = (selectedItem: { selected: number }) => {
     setPage(selectedItem.selected + 1);
+    setForcePage(undefined);
   };
 
   const columns: ColumnDef<Resume>[] = [
@@ -155,32 +164,83 @@ export function ResumeTable() {
       },
       cell: ({ row }) => {
         const resume = row.original;
+        const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
+        const { mutate: deleteResumeById, isPending: isDeleting } =
+          deleteResume();
+
+        const handleDelete = () => {
+          deleteResumeById(resume.id, {
+            onSuccess: () => {
+              toast.success("آیتم مورد نظر حذف شد");
+              setShowDeleteDialog(false);
+            },
+            onError: (error: any) => {
+              toast.error("مشکلی پیش آمده دوباره تلاش کنید");
+            },
+          });
+        };
         return (
-          <div className="text-center">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                  <span className="sr-only">باز کردن منو</span>
-                  <DotsHorizontalIcon className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="center">
-                <DropdownMenuLabel>عملیات</DropdownMenuLabel>
-                <DropdownMenuItem
-                  onClick={() => window.open(resume.full_path, "_blank")}
-                >
-                  <FileText className="ml-2 h-4 w-4" />
-                  <span>مشاهده رزومه</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => window.open(`/resumes/${resume.id}`, "_blank")}
-                >
-                  <Eye className="ml-2 h-4 w-4" />
-                  <span>مشاهده جزئیات</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+          <div className="flex items-center justify-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="cursor-pointer"
+              // onClick={() => window.open(`/resumes/${resume.id}`, "_blank")}
+              title="مشاهده رزومه"
+            >
+              <Link href={`/resumes/${resume.id}`} className="w-full h-full flex justify-center items-center">
+                <Eye className="h-4 w-4" />
+                <span className="sr-only">مشاهده رزومه</span>
+              </Link>
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowDeleteDialog(true)}
+              className="text-destructive hover:bg-destructive/10 cursor-pointer"
+              title="حذف رزومه"
+            >
+              <Trash2 className="h-4 w-4" />
+              <span className="sr-only">حذف رزومه</span>
+            </Button>
+
+            <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+              <DialogContent>
+                <DialogHeader>
+                  {/* <DialogTitle>تایید حذف</DialogTitle> */}
+                  <DialogDescription className="sm:text-lg">
+                    آیا از حذف این رزومه اطمینان دارید؟
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter className="flex flex-row gap-2 justify-center">
+                  <Button
+                    variant="outline"
+                    className="cursor-pointer"
+                    onClick={() => setShowDeleteDialog(false)}
+                    disabled={isDeleting}
+                  >
+                    خیر
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    className="cursor-pointer"
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        در حال حذف...
+                      </>
+                    ) : (
+                      "حذف"
+                    )}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         );
       },
@@ -202,123 +262,176 @@ export function ResumeTable() {
     },
   });
 
+  const handleTitleChange = (value: string) => {
+    setTitle(value);
+  };
+
+  const applyFilters = () => {
+    if (title && title.length < 2) {
+      setErrorMessage("باید حداقل شامل ۲ حرف باشد.");
+      return;
+    }
+    setErrorMessage("");
+    setAppliedTitle(title);
+    setPage(1);
+    setForcePage(0);
+  };
+
+  const clearFilters = () => {
+    setErrorMessage("");
+    setTitle("");
+    setAppliedTitle("");
+    setPage(1);
+    setForcePage(0);
+  };
+
+  useEffect(() => {
+    if (forcePage !== undefined) {
+      setForcePage(undefined);
+    }
+  }, [forcePage]);
+
   return (
-    <div className="w-full" dir="rtl">
-      <Card>
-        <CardHeader>
-          <CardTitle>مدیریت رزومه‌ها</CardTitle>
-          <CardDescription>
-            لیست رزومه‌های ارسال شده به سیستم. برای مرتب‌سازی بر اساس تاریخ ثبت،
-            روی ستون تاریخ ثبت کلیک کنید.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center py-4">
-            <Input
-              placeholder="جستجو بر اساس نام..."
-              value={
-                (table.getColumn("name")?.getFilterValue() as string) ?? ""
-              }
-              onChange={(event) =>
-                table.getColumn("name")?.setFilterValue(event.target.value)
-              }
-              className="max-w-sm"
-            />
-          </div>
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => {
-                      return (
-                        <TableHead key={header.id} className="text-right">
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
-                        </TableHead>
-                      );
-                    })}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {isLoading ? (
-                  <TableRow>
+    <>
+      <ToastContainer />
+      <div className="w-full" dir="rtl">
+        <Card>
+          <CardHeader>
+            <CardTitle>مدیریت رزومه‌ها</CardTitle>
+            <CardDescription>
+              لیست رزومه‌های ارسال شده به سیستم. برای مرتب‌سازی بر اساس تاریخ
+              ثبت، روی ستون تاریخ ثبت کلیک کنید.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="py-4">
+              <div className="flex items-center gap-3">
+                <Input
+                  placeholder="نام یا نام خانوادگی را وارد کنید ..."
+                  value={title}
+                  onChange={(e) => handleTitleChange(e.target.value)}
+                  className="max-w-sm"
+                />
+
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    onClick={clearFilters}
+                    disabled={isLoading}
+                    variant="outline"
+                    className="cursor-pointer"
+                  >
+                    پاک کردن
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={applyFilters}
+                    disabled={isLoading}
+                    className="cursor-pointer"
+                  >
+                    جستجو
+                  </Button>
+                </div>
+              </div>
+              {errorMessage && (
+                <p className="mt-1 text-red-500">{errorMessage}</p>
+              )}
+            </div>
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => {
+                        return (
+                          <TableHead key={header.id} className="text-center">
+                            {header.isPlaceholder
+                              ? null
+                              : flexRender(
+                                  header.column.columnDef.header,
+                                  header.getContext()
+                                )}
+                          </TableHead>
+                        );
+                      })}
+                    </TableRow>
+                  ))}
+                </TableHeader>
+                <TableBody>
+                  {isLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={columns.length} className="h-24">
+                        <div className="flex justify-center items-center h-full">
+                          <Loader2 className="h-6 w-6 animate-spin" />
+                          <span className="mr-2">در حال بارگذاری...</span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : isError ? (
                     <TableCell colSpan={columns.length} className="h-24">
                       <div className="flex justify-center items-center h-full">
-                        <Loader2 className="h-6 w-6 animate-spin" />
-                        <span className="mr-2">در حال بارگذاری...</span>
+                        <TriangleAlert className="h-6 w-6" />
+                        <span className="mr-2">مشکلی رخ داده...</span>
                       </div>
                     </TableCell>
-                  </TableRow>
-                ) : isError ? (
-                  <TableCell colSpan={columns.length} className="h-24">
-                    <div className="flex justify-center items-center h-full">
-                      <TriangleAlert className="h-6 w-6" />
-                      <span className="mr-2">مشکلی رخ داده...</span>
-                    </div>
-                  </TableCell>
-                ) : data?.data.length ? (
-                  table.getRowModel().rows.map((row) => (
-                    <TableRow key={row.id}>
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
-                      ))}
+                  ) : data?.data.length ? (
+                    table.getRowModel().rows.map((row) => (
+                      <TableRow key={row.id}>
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id}>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={columns.length}
+                        className="h-24 text-center"
+                      >
+                        هیچ نتیجه‌ای یافت نشد.
+                      </TableCell>
                     </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className="h-24 text-center"
-                    >
-                      هیچ نتیجه‌ای یافت نشد.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-          <div className="flex items-center justify-between sm:justify-end py-4">
-            <ReactPaginate
-              previousLabel={<ChevronRightIcon className="h-4 w-4" />}
-              nextLabel={<ChevronLeftIcon className="h-4 w-4" />}
-              breakLabel="..."
-              pageCount={data?.meta.last_page || 1}
-              marginPagesDisplayed={2}
-              pageRangeDisplayed={3}
-              onPageChange={handlePageChange}
-              // forcePage={currentPage}
-              containerClassName="flex items-center space-x-1 space-x-reverse"
-              pageClassName="hidden sm:flex relative items-center"
-              pageLinkClassName="h-8 w-8 flex items-center justify-center rounded-md border border-input bg-background text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-              previousClassName="relative flex items-center"
-              previousLinkClassName="h-8 w-8 flex items-center justify-center rounded-md border border-input bg-background text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-              nextClassName="relative flex items-center"
-              nextLinkClassName="h-8 w-8 flex items-center justify-center rounded-md border border-input bg-background text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-              breakClassName="hidden sm:flex relative items-center"
-              breakLinkClassName="hidden sm:flex h-8 w-8 flex items-center justify-center rounded-md border border-input bg-background text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-              activeClassName="active"
-              activeLinkClassName="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
-              disabledClassName="opacity-50 pointer-events-none"
-            />
-
-            <div className="sm:hidden text-sm text-center mt-2 self-start">
-              صفحه {page} از
-              {data?.meta.last_page || 1}
+                  )}
+                </TableBody>
+              </Table>
             </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+            <div className="flex items-center justify-between sm:justify-end py-4">
+              <ReactPaginate
+                previousLabel={<ChevronRightIcon className="h-4 w-4" />}
+                nextLabel={<ChevronLeftIcon className="h-4 w-4" />}
+                breakLabel="..."
+                pageCount={data?.meta.last_page || 1}
+                marginPagesDisplayed={2}
+                pageRangeDisplayed={3}
+                onPageChange={handlePageChange}
+                forcePage={forcePage}
+                containerClassName="flex items-center space-x-1 space-x-reverse"
+                pageClassName="hidden sm:flex relative items-center"
+                pageLinkClassName="h-8 w-8 flex items-center justify-center rounded-md border border-input bg-background text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+                previousClassName="relative flex items-center"
+                previousLinkClassName="h-8 w-8 flex items-center justify-center rounded-md border border-input bg-background text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+                nextClassName="relative flex items-center"
+                nextLinkClassName="h-8 w-8 flex items-center justify-center rounded-md border border-input bg-background text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+                breakClassName="hidden sm:flex relative items-center"
+                breakLinkClassName="hidden sm:flex h-8 w-8 flex items-center justify-center rounded-md border border-input bg-background text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+                activeClassName="active"
+                activeLinkClassName="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
+                disabledClassName="opacity-50 pointer-events-none"
+              />
+
+              <div className="sm:hidden text-sm text-center mt-2 self-start">
+                صفحه {page} از
+                {data?.meta.last_page || 1}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </>
   );
 }

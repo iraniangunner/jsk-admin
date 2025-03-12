@@ -37,7 +37,7 @@ export default function RootLayout({
           <AppSidebar />
           <main className="w-full">
             <SidebarTrigger className="h-9 w-9" />
-            {children}
+            <div className="w-full lg:w-[90%] mx-auto">{children}</div>
           </main>
         </SidebarProvider>
       </body>

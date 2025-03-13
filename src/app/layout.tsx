@@ -30,13 +30,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fa" dir="rtl">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}
-      >
+      <body className={`antialiased min-h-screen`}>
         <SidebarProvider>
           <AppSidebar />
           <main className="w-full">
-            <SidebarTrigger className="h-9 w-9" />
+            <div className="flex items-center lg:hidden">
+              <SidebarTrigger className="h-9 w-9" />
+              <p>منوی پنل</p>
+            </div>
+
             <div className="w-full lg:w-[90%] mx-auto">{children}</div>
           </main>
         </SidebarProvider>

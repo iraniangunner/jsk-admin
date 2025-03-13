@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import { useEffect } from "react";
 import {
   Home,
   Settings,
@@ -35,33 +35,43 @@ interface SidebarItemType {
 
 const sidebarItems: SidebarItemType[] = [
   {
-    title: "Dashboard",
+    title: "داشبورد",
     icon: Home,
     href: "/",
     isActive: true,
   },
   {
-    title: "Resumes",
+    title: "رزومه ها",
     icon: Users,
     href: "/resumes",
   },
   {
-    title: "Reports",
+    title: "همکاری شرکت ها",
     icon: FileText,
     href: "/reports",
   },
   {
-    title: "Analytics",
+    title: "تماس با ما",
     icon: BarChart3,
     href: "/analytics",
   },
   {
-    title: "Settings",
+    title: "اسلایدر",
     icon: Settings,
     href: "/settings",
   },
   {
-    title: "Help",
+    title: "پروژه",
+    icon: HelpCircle,
+    href: "/help",
+  },
+  {
+    title: "مناقصات",
+    icon: HelpCircle,
+    href: "/help",
+  },
+  {
+    title: "فرصت های شغلی",
     icon: HelpCircle,
     href: "/help",
   },
@@ -69,7 +79,7 @@ const sidebarItems: SidebarItemType[] = [
 
 export function AppSidebar() {
   // Set the document direction to RTL
-  React.useEffect(() => {
+  useEffect(() => {
     document.documentElement.dir = "rtl";
   }, []);
 
@@ -81,15 +91,15 @@ export function AppSidebar() {
     >
       <SidebarHeader className="flex items-center justify-between p-4">
         <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold">
-            A
+          <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold">
+            JSK
           </div>
-          <span className="font-semibold">اسم التطبيق</span>
+          <span className="font-semibold">ژیوار صنعت کیان</span>
         </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>القائمة الرئيسية</SidebarGroupLabel>
+          {/* <SidebarGroupLabel>القائمة الرئيسية</SidebarGroupLabel> */}
           <SidebarGroupContent>
             <SidebarMenu>
               {sidebarItems.map((item) => (

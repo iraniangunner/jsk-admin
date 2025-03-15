@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { CaretSortIcon, DotsHorizontalIcon } from "@radix-ui/react-icons";
 import {
@@ -48,11 +47,11 @@ import {
   ChevronRightIcon,
   ChevronLeftIcon,
 } from "lucide-react";
-import { ResumeSearchParams, Resume } from "@/types/resume-types";
-import { deleteResume, getResumes } from "@/hooks/use-resume";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
+import { deleteComment, getComments } from "@/hooks/use-comments";
+import { CommentSearchParams, Comment } from "@/types/comment-types";
 
 const formatDate = (dateString: any) => {
   try {
@@ -63,7 +62,7 @@ const formatDate = (dateString: any) => {
   }
 };
 
-export function ResumeTable() {
+export function CommentTable() {
   const [sorting, setSorting] = useState<SortingState>([
     { id: "created_at", desc: true },
   ]);
@@ -74,20 +73,20 @@ export function ResumeTable() {
   const [forcePage, setForcePage] = useState<number | undefined>(undefined);
   const [errorMessage, setErrorMessage] = useState<string>("");
 
-  const searchParams: ResumeSearchParams = {
+  const searchParams: CommentSearchParams = {
     page: page ? page : undefined,
     per_page: itemsPerPage ? itemsPerPage : undefined,
     title: appliedTitle.length >= 2 ? appliedTitle : undefined,
   };
 
-  const { data, isLoading, isError } = getResumes(searchParams);
+  const { data, isLoading, isError } = getComments(searchParams);
 
   const handlePageChange = (selectedItem: { selected: number }) => {
     setPage(selectedItem.selected + 1);
     setForcePage(undefined);
   };
 
-  const columns: ColumnDef<Resume>[] = [
+  const columns: ColumnDef<Comment>[] = [
     {
       accessorKey: "id",
       header: ({ column }) => {
@@ -97,24 +96,7 @@ export function ResumeTable() {
         <div className="text-center">{row.getValue("id")}</div>
       ),
     },
-    {
-      accessorKey: "name",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="text-center w-full"
-          >
-            <CaretSortIcon className="ml-2 h-4 w-4" />
-            نام و نام خانوادگی
-          </Button>
-        );
-      },
-      cell: ({ row }) => (
-        <div className="text-center">{row.getValue("name")}</div>
-      ),
-    },
+
     {
       accessorKey: "email",
       header: ({ column }) => {
@@ -124,25 +106,7 @@ export function ResumeTable() {
         <div className="text-center">{row.getValue("email")}</div>
       ),
     },
-    {
-      accessorKey: "degree",
-      header: ({ column }) => {
-        return <div className="text-center">تحصیلات</div>;
-      },
-      cell: ({ row }) => (
-        <div className="text-center">{row.getValue("degree")}</div>
-      ),
-    },
 
-    {
-      accessorKey: "major",
-      header: ({ column }) => {
-        return <div className="text-center">رشته تحصیلی</div>;
-      },
-      cell: ({ row }) => (
-        <div className="text-center">{row.getValue("major")}</div>
-      ),
-    },
     {
       accessorKey: "created_at",
       header: ({ column }) => {
@@ -168,14 +132,14 @@ export function ResumeTable() {
         return <div className="text-center">عملیات</div>;
       },
       cell: ({ row }) => {
-        const resume = row.original;
+        const comment = row.original;
         const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-        const { mutate: deleteResumeById, isPending: isDeleting } =
-          deleteResume();
+        const { mutate: deleteCommentById, isPending: isDeleting } =
+          deleteComment();
 
         const handleDelete = () => {
-          deleteResumeById(resume.id, {
+          deleteCommentById(comment.id, {
             onSuccess: () => {
               toast.success("آیتم مورد نظر حذف شد");
               setShowDeleteDialog(false);
@@ -191,14 +155,14 @@ export function ResumeTable() {
               variant="ghost"
               size="icon"
               className="cursor-pointer"
-              title="مشاهده رزومه"
+              title="مشاهده پیام ارسالی"
             >
               <Link
-                href={`/resumes/${resume.id}`}
+                href={`/comments/${comment.id}`}
                 className="w-full h-full flex justify-center items-center"
               >
                 <Eye className="h-4 w-4" />
-                <span className="sr-only">مشاهده رزومه</span>
+                <span className="sr-only">مشاهده پیام ارسالی</span>
               </Link>
             </Button>
 
@@ -207,17 +171,17 @@ export function ResumeTable() {
               size="icon"
               onClick={() => setShowDeleteDialog(true)}
               className="text-destructive hover:bg-destructive/10 cursor-pointer"
-              title="حذف رزومه"
+              title="حذف پیام ارسالی"
             >
               <Trash2 className="h-4 w-4" />
-              <span className="sr-only">حذف رزومه</span>
+              <span className="sr-only">حذف پیام ارسالی</span>
             </Button>
 
             <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
               <DialogContent>
                 <DialogHeader>
                   <DialogDescription className="sm:text-lg">
-                    آیا از حذف این رزومه اطمینان دارید؟
+                    آیا از حذف این پیام اطمینان دارید؟
                   </DialogDescription>
                 </DialogHeader>
                 <DialogFooter className="flex flex-row gap-2 justify-center">
@@ -254,7 +218,7 @@ export function ResumeTable() {
   ];
 
   const table = useReactTable({
-    data: data?.data || [],
+    data: data || [],
     columns,
     onSortingChange: setSorting,
     // onColumnFiltersChange: setColumnFilters,
@@ -303,9 +267,9 @@ export function ResumeTable() {
       <div className="w-full" dir="rtl">
         <Card>
           <CardHeader>
-            <CardTitle>مدیریت رزومه‌ها</CardTitle>
+            <CardTitle>مدیریت پیام های ارسالی</CardTitle>
             <CardDescription>
-              لیست رزومه‌های ارسال شده به سیستم. برای مرتب‌سازی بر اساس تاریخ
+              لیست پیام های ارسالی به سیستم. برای مرتب‌سازی بر اساس تاریخ
               ثبت، روی ستون تاریخ ثبت کلیک کنید.
             </CardDescription>
           </CardHeader>
@@ -313,7 +277,7 @@ export function ResumeTable() {
             <div className="py-4">
               <div className="flex flex-col sm:flex-row items-center gap-3">
                 <Input
-                  placeholder="نام یا نام خانوادگی را وارد کنید ..."
+                  placeholder="ایمیل را وارد کنید..."
                   value={title}
                   onChange={(e) => handleTitleChange(e.target.value)}
                   className="max-w-sm"
@@ -380,7 +344,7 @@ export function ResumeTable() {
                         <span className="mr-2">مشکلی رخ داده...</span>
                       </div>
                     </TableCell>
-                  ) : data?.data.length ? (
+                  ) : data?.length ? (
                     table.getRowModel().rows.map((row) => (
                       <TableRow key={row.id}>
                         {row.getVisibleCells().map((cell) => (
@@ -411,7 +375,8 @@ export function ResumeTable() {
                 previousLabel={<ChevronRightIcon className="h-4 w-4" />}
                 nextLabel={<ChevronLeftIcon className="h-4 w-4" />}
                 breakLabel="..."
-                pageCount={data?.meta.last_page || 1}
+                // pageCount={data?.meta.last_page || 1}
+                pageCount={1}
                 marginPagesDisplayed={2}
                 pageRangeDisplayed={3}
                 onPageChange={handlePageChange}
@@ -432,7 +397,8 @@ export function ResumeTable() {
 
               <div className="sm:hidden text-sm text-center mt-2 self-start">
                 صفحه {page} از
-                {data?.meta.last_page || 1}
+                {/* {data?.meta.last_page || 1} */}
+                {1}
               </div>
             </div>
           </CardContent>

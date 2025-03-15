@@ -1,43 +1,22 @@
 "use client";
-
 // import { formatDistanceToNow } from "date-fns";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import {
-  Calendar,
-  Download,
-  FileText,
-  GraduationCap,
-  Mail,
-  User,
-  Users,
-  Shield,
-  Building,
-  Clock,
-  Phone,
-  MapPin,
-  Handshake,
-  Smartphone,
-} from "lucide-react";
+import { ChevronRight, Download, Phone, Smartphone } from "lucide-react";
+import Link from "next/link";
 
-// Format date to Persian-friendly format
-const formatDate = (dateString: any) => {
-  try {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("fa-IR");
-  } catch (e) {
-    return dateString;
-  }
-};
-
-// Format submission date
+// Format date to a more readable format
+function formatDate(dateString: string) {
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat("fa-IR", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
 
 export function CooperationDetails({ cooperation }: { cooperation: any }) {
   // Handle file download
@@ -56,17 +35,17 @@ export function CooperationDetails({ cooperation }: { cooperation: any }) {
     <div className="space-y-6 rtl">
       <Card>
         <CardHeader className="pb-2">
+          <div className="mb-6 bg-gray-200 rounded-sm">
+            <Link href="/cooperations" className="flex items-center p-2 text-sm">
+              <ChevronRight className="flex justify-center items-center" />
+              <span>بازگشت به همکاری شرکت ها</span>
+            </Link>
+          </div>
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div>
               <CardTitle className="text-2xl">
                 {cooperation.company_name}
               </CardTitle>
-              {/* <CardDescription className="mt-1 text-base">
-                <div className="flex items-center gap-2">
-                  <Phone className="h-4 w-4" />
-                  {cooperation.phone}
-                </div>
-              </CardDescription> */}
             </div>
             {cooperation.file !== null && (
               <Button

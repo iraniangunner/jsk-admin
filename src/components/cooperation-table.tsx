@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { CaretSortIcon, DotsHorizontalIcon } from "@radix-ui/react-icons";
 import {
@@ -48,11 +47,14 @@ import {
   ChevronRightIcon,
   ChevronLeftIcon,
 } from "lucide-react";
-import { ResumeSearchParams, Resume } from "@/types/resume-types";
-import { deleteResume, getResumes } from "@/hooks/use-resume";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
+import {
+  Cooperation,
+  CooperationSearchParams,
+} from "@/types/cooperation-types";
+import { deleteCooperation, getCooperations } from "@/hooks/use-cooperation";
 
 const formatDate = (dateString: any) => {
   try {
@@ -63,7 +65,7 @@ const formatDate = (dateString: any) => {
   }
 };
 
-export function ResumeTable() {
+export function CooperationTable() {
   const [sorting, setSorting] = useState<SortingState>([
     { id: "created_at", desc: true },
   ]);
@@ -74,20 +76,20 @@ export function ResumeTable() {
   const [forcePage, setForcePage] = useState<number | undefined>(undefined);
   const [errorMessage, setErrorMessage] = useState<string>("");
 
-  const searchParams: ResumeSearchParams = {
+  const searchParams: CooperationSearchParams = {
     page: page ? page : undefined,
     per_page: itemsPerPage ? itemsPerPage : undefined,
     title: appliedTitle.length >= 2 ? appliedTitle : undefined,
   };
 
-  const { data, isLoading, isError } = getResumes(searchParams);
+  const { data, isLoading, isError } = getCooperations(searchParams);
 
   const handlePageChange = (selectedItem: { selected: number }) => {
     setPage(selectedItem.selected + 1);
     setForcePage(undefined);
   };
 
-  const columns: ColumnDef<Resume>[] = [
+  const columns: ColumnDef<Cooperation>[] = [
     {
       accessorKey: "id",
       header: ({ column }) => {
@@ -98,7 +100,7 @@ export function ResumeTable() {
       ),
     },
     {
-      accessorKey: "name",
+      accessorKey: "company_name",
       header: ({ column }) => {
         return (
           <Button
@@ -107,42 +109,24 @@ export function ResumeTable() {
             className="text-center w-full"
           >
             <CaretSortIcon className="ml-2 h-4 w-4" />
-            نام و نام خانوادگی
+            نام شرکت
           </Button>
         );
       },
       cell: ({ row }) => (
-        <div className="text-center">{row.getValue("name")}</div>
+        <div className="text-center">{row.getValue("company_name")}</div>
       ),
     },
     {
-      accessorKey: "email",
+      accessorKey: "phone",
       header: ({ column }) => {
-        return <div className="text-center">ایمیل</div>;
+        return <div className="text-center">تلفن ثابت</div>;
       },
       cell: ({ row }) => (
-        <div className="text-center">{row.getValue("email")}</div>
-      ),
-    },
-    {
-      accessorKey: "degree",
-      header: ({ column }) => {
-        return <div className="text-center">تحصیلات</div>;
-      },
-      cell: ({ row }) => (
-        <div className="text-center">{row.getValue("degree")}</div>
+        <div className="text-center">{row.getValue("phone")}</div>
       ),
     },
 
-    {
-      accessorKey: "major",
-      header: ({ column }) => {
-        return <div className="text-center">رشته تحصیلی</div>;
-      },
-      cell: ({ row }) => (
-        <div className="text-center">{row.getValue("major")}</div>
-      ),
-    },
     {
       accessorKey: "created_at",
       header: ({ column }) => {
@@ -168,14 +152,14 @@ export function ResumeTable() {
         return <div className="text-center">عملیات</div>;
       },
       cell: ({ row }) => {
-        const resume = row.original;
+        const cooperation = row.original;
         const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-        const { mutate: deleteResumeById, isPending: isDeleting } =
-          deleteResume();
+        const { mutate: deleteCooperationById, isPending: isDeleting } =
+          deleteCooperation();
 
         const handleDelete = () => {
-          deleteResumeById(resume.id, {
+          deleteCooperationById(cooperation.id, {
             onSuccess: () => {
               toast.success("آیتم مورد نظر حذف شد");
               setShowDeleteDialog(false);
@@ -191,14 +175,14 @@ export function ResumeTable() {
               variant="ghost"
               size="icon"
               className="cursor-pointer"
-              title="مشاهده رزومه"
+              title="مشاهده همکاری"
             >
               <Link
-                href={`/resumes/${resume.id}`}
+                href={`/cooperations/${cooperation.id}`}
                 className="w-full h-full flex justify-center items-center"
               >
                 <Eye className="h-4 w-4" />
-                <span className="sr-only">مشاهده رزومه</span>
+                <span className="sr-only">مشاهده همکاری</span>
               </Link>
             </Button>
 
@@ -207,17 +191,17 @@ export function ResumeTable() {
               size="icon"
               onClick={() => setShowDeleteDialog(true)}
               className="text-destructive hover:bg-destructive/10 cursor-pointer"
-              title="حذف رزومه"
+              title="حذف همکاری"
             >
               <Trash2 className="h-4 w-4" />
-              <span className="sr-only">حذف رزومه</span>
+              <span className="sr-only">حذف همکاری</span>
             </Button>
 
             <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
               <DialogContent>
                 <DialogHeader>
                   <DialogDescription className="sm:text-lg">
-                    آیا از حذف این رزومه اطمینان دارید؟
+                    آیا از حذف این درخواست همکاری اطمینان دارید؟
                   </DialogDescription>
                 </DialogHeader>
                 <DialogFooter className="flex flex-row gap-2 justify-center">
@@ -303,9 +287,9 @@ export function ResumeTable() {
       <div className="w-full" dir="rtl">
         <Card>
           <CardHeader>
-            <CardTitle>مدیریت رزومه‌ها</CardTitle>
+            <CardTitle>مدیریت همکاری شرکت ها</CardTitle>
             <CardDescription>
-              لیست رزومه‌های ارسال شده به سیستم. برای مرتب‌سازی بر اساس تاریخ
+              لیست همکاری های ارسال شده به سیستم. برای مرتب‌سازی بر اساس تاریخ
               ثبت، روی ستون تاریخ ثبت کلیک کنید.
             </CardDescription>
           </CardHeader>
@@ -313,7 +297,7 @@ export function ResumeTable() {
             <div className="py-4">
               <div className="flex flex-col sm:flex-row items-center gap-3">
                 <Input
-                  placeholder="نام یا نام خانوادگی را وارد کنید ..."
+                  placeholder="نام شرکت را وارد کنید ..."
                   value={title}
                   onChange={(e) => handleTitleChange(e.target.value)}
                   className="max-w-sm"
@@ -411,7 +395,8 @@ export function ResumeTable() {
                 previousLabel={<ChevronRightIcon className="h-4 w-4" />}
                 nextLabel={<ChevronLeftIcon className="h-4 w-4" />}
                 breakLabel="..."
-                pageCount={data?.meta.last_page || 1}
+                // pageCount={data?.meta.last_page || 1}
+                pageCount={1}
                 marginPagesDisplayed={2}
                 pageRangeDisplayed={3}
                 onPageChange={handlePageChange}
@@ -432,7 +417,8 @@ export function ResumeTable() {
 
               <div className="sm:hidden text-sm text-center mt-2 self-start">
                 صفحه {page} از
-                {data?.meta.last_page || 1}
+                {/* {data?.meta.last_page || 1} */}
+                {1}
               </div>
             </div>
           </CardContent>

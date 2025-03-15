@@ -3,13 +3,13 @@ import { useQueryClient, useMutation } from "@tanstack/react-query";
 import {
   ResumeSearchParams,
   Resume,
-  PaginatedResponse,
+  PaginatedResumeResponse,
 } from "@/types/resume-types";
 import { useQuery } from "@tanstack/react-query";
 
 export const fetchResumes = async (
   params: ResumeSearchParams
-): Promise<PaginatedResponse<Resume>> => {
+): Promise<PaginatedResumeResponse<Resume>> => {
   const queryParams = new URLSearchParams();
   if (params.page) {
     queryParams.set("page", params.page.toString());
@@ -25,7 +25,6 @@ export const fetchResumes = async (
   const response = await fetch(
     `https://jsk-co.com/api/resumes?${queryParams.toString()}`,
     {
-      //   next: { revalidate: 3600 },
       headers: {
         Authorization:
           "Bearer 3|aEbpCRb3dEf0gV3YyrmjFpmGdkEyYGxJue9ResHtb33d8a02",

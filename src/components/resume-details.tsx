@@ -1,5 +1,4 @@
 "use client";
-
 // import { formatDistanceToNow } from "date-fns";
 import {
   Card,
@@ -25,17 +24,17 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-// Format date to Persian-friendly format
-const formatDate = (dateString: any) => {
-  try {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("fa-IR");
-  } catch (e) {
-    return dateString;
-  }
-};
-
-// Format submission date
+// Format date to a more readable format
+function formatDate(dateString: string) {
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat("fa-IR", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
 
 export function ResumeDetails({ resume }: { resume: any }) {
   // Handle file download
@@ -55,10 +54,7 @@ export function ResumeDetails({ resume }: { resume: any }) {
       <Card>
         <CardHeader className="pb-2">
           <div className="mb-6 bg-gray-200 rounded-sm">
-            <Link
-              href="/resumes"
-              className="flex items-center p-2 text-sm"
-            >
+            <Link href="/resumes" className="flex items-center p-2 text-sm">
               <ChevronRight className="flex justify-center items-center" />
               <span>بازگشت به رزومه ها</span>
             </Link>

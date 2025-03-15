@@ -1,28 +1,19 @@
-export interface Resume {
+export interface Comment {
   id: number;
   name: string;
-  birthday: string;
-  gender: string;
-  marital: string;
-  degree: string;
-  military: string;
-  university: string;
-  major: string;
-  experience: string;
   email: string;
-  file: string;
-  full_path: string;
+  website: string;
   text: string;
   created_at: string;
 }
 
-export interface ResumeSearchParams {
+export interface CommentSearchParams {
   page?: number;
   per_page?: number;
   title?: string;
 }
 
-export interface PaginatedResumeResponse<T> {
+export interface PaginatedCommentResponse<T> {
   current_page: number;
   data: T[];
   first_page_url: string;

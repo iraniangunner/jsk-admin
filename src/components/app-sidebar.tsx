@@ -38,7 +38,6 @@ const sidebarItems: SidebarItemType[] = [
     title: "داشبورد",
     icon: Home,
     href: "/",
-    isActive: true,
   },
   {
     title: "رزومه ها",
@@ -48,12 +47,12 @@ const sidebarItems: SidebarItemType[] = [
   {
     title: "همکاری شرکت ها",
     icon: FileText,
-    href: "/reports",
+    href: "/cooperations",
   },
   {
     title: "تماس با ما",
     icon: BarChart3,
-    href: "/analytics",
+    href: "/comments",
   },
   {
     title: "اسلایدر",

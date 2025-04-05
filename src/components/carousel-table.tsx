@@ -46,12 +46,14 @@ import {
   TriangleAlert,
   ChevronRightIcon,
   ChevronLeftIcon,
+  Edit,
+  Plus,
 } from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
-import { deleteComment, getComments } from "@/hooks/use-comment";
-import { CommentSearchParams, Comment } from "@/types/comment-types";
+import { deleteSlide, getSlides } from "@/hooks/use-carousel";
+import { Slide } from "@/types/carousel-types";
 
 const formatDate = (dateString: any) => {
   try {
@@ -62,31 +64,22 @@ const formatDate = (dateString: any) => {
   }
 };
 
-export function CommentTable() {
+export function CarouselTable() {
   const [sorting, setSorting] = useState<SortingState>([
-    { id: "created_at", desc: true },
+    { id: "created_at",desc:true},
   ]);
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [title, setTitle] = useState("");
-  const [appliedTitle, setAppliedTitle] = useState("");
   const [forcePage, setForcePage] = useState<number | undefined>(undefined);
-  const [errorMessage, setErrorMessage] = useState<string>("");
 
-  const searchParams: CommentSearchParams = {
-    page: page ? page : undefined,
-    per_page: itemsPerPage ? itemsPerPage : undefined,
-    title: appliedTitle.length >= 2 ? appliedTitle : undefined,
-  };
-
-  const { data, isLoading, isError } = getComments(searchParams);
+  const { data, isLoading, isError } = getSlides();
 
   const handlePageChange = (selectedItem: { selected: number }) => {
     setPage(selectedItem.selected + 1);
     setForcePage(undefined);
   };
 
-  const columns: ColumnDef<Comment>[] = [
+  const columns: ColumnDef<Slide>[] = [
     {
       accessorKey: "id",
       header: ({ column }) => {
@@ -98,13 +91,32 @@ export function CommentTable() {
     },
 
     {
-      accessorKey: "email",
+      accessorKey: "text",
       header: ({ column }) => {
-        return <div className="text-center">ایمیل</div>;
+        return <div className="text-center">متن فارسی</div>;
       },
       cell: ({ row }) => (
-        <div className="text-center">{row.getValue("email")}</div>
+        <div className="text-center">{row.getValue("text")}</div>
       ),
+    },
+
+    {
+      accessorKey: "full_path",
+      header: () => <div className="text-center">تصویر</div>,
+      cell: ({ row }) => {
+        const image = row.getValue("full_path") as string;
+        return (
+          <div className="flex justify-center items-center">
+            <div className="relative h-10 w-16 overflow-hidden rounded">
+              <img
+                src={image || "/placeholder.svg"}
+                alt="تصویر اسلاید"
+                className="object-cover"
+              />
+            </div>
+          </div>
+        );
+      },
     },
 
     {
@@ -117,7 +129,7 @@ export function CommentTable() {
             className="text-center w-full"
           >
             <CaretSortIcon className="ml-2 h-4 w-4" />
-            تاریخ ارسال
+            تاریخ ایجاد
           </Button>
         );
       },
@@ -132,14 +144,14 @@ export function CommentTable() {
         return <div className="text-center">عملیات</div>;
       },
       cell: ({ row }) => {
-        const comment = row.original;
+        const slide = row.original;
         const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-        const { mutate: deleteCommentById, isPending: isDeleting } =
-          deleteComment();
+        const { mutate: deleteSlideById, isPending: isDeleting } =
+          deleteSlide();
 
         const handleDelete = () => {
-          deleteCommentById(comment.id, {
+          deleteSlideById(slide.id, {
             onSuccess: () => {
               toast.success("آیتم مورد نظر حذف شد");
               setShowDeleteDialog(false);
@@ -155,14 +167,14 @@ export function CommentTable() {
               variant="ghost"
               size="icon"
               className="cursor-pointer"
-              title="مشاهده پیام ارسالی"
+              title="ویرایش اسلاید"
             >
               <Link
-                href={`/comments/${comment.id}`}
+                href={`/slides/${slide.id}/edit`}
                 className="w-full h-full flex justify-center items-center"
               >
-                <Eye className="h-4 w-4" />
-                <span className="sr-only">مشاهده پیام ارسالی</span>
+                <Edit className="h-4 w-4" />
+                <span className="sr-only">ویرایش اسلاید</span>
               </Link>
             </Button>
 
@@ -171,17 +183,17 @@ export function CommentTable() {
               size="icon"
               onClick={() => setShowDeleteDialog(true)}
               className="text-destructive hover:bg-destructive/10 cursor-pointer"
-              title="حذف پیام ارسالی"
+              title="حذف اسلاید"
             >
               <Trash2 className="h-4 w-4" />
-              <span className="sr-only">حذف پیام ارسالی</span>
+              <span className="sr-only">حذف اسلاید</span>
             </Button>
 
             <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
               <DialogContent>
                 <DialogHeader>
                   <DialogDescription className="sm:text-lg">
-                    آیا از حذف این پیام اطمینان دارید؟
+                    آیا از حذف این اسلاید اطمینان دارید؟
                   </DialogDescription>
                 </DialogHeader>
                 <DialogFooter className="flex flex-row gap-2 justify-center">
@@ -232,29 +244,6 @@ export function CommentTable() {
     },
   });
 
-  const handleTitleChange = (value: string) => {
-    setTitle(value);
-  };
-
-  const applyFilters = () => {
-    if (title && title.length < 2) {
-      setErrorMessage("باید حداقل شامل ۲ حرف باشد.");
-      return;
-    }
-    setErrorMessage("");
-    setAppliedTitle(title);
-    setPage(1);
-    setForcePage(0);
-  };
-
-  const clearFilters = () => {
-    setErrorMessage("");
-    setTitle("");
-    setAppliedTitle("");
-    setPage(1);
-    setForcePage(0);
-  };
-
   useEffect(() => {
     if (forcePage !== undefined) {
       setForcePage(undefined);
@@ -266,47 +255,22 @@ export function CommentTable() {
       <ToastContainer />
       <div className="w-full" dir="rtl">
         <Card>
-          <CardHeader>
-            <CardTitle>مدیریت پیام های ارسالی</CardTitle>
-            <CardDescription>
-              لیست پیام های ارسالی به سیستم. برای مرتب‌سازی بر اساس تاریخ
-              ثبت، روی ستون تاریخ ثبت کلیک کنید.
-            </CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>مدیریت اسلایدها</CardTitle>
+              <CardDescription className="mt-2">
+                لیست اسلایدهای کاروسل. برای مرتب‌سازی بر اساس تاریخ ایجاد، روی
+                ستون تاریخ ایجاد کلیک کنید.
+              </CardDescription>
+            </div>
+            <Link href="/slides/create">
+              <Button className="cursor-pointer">
+                <Plus className="h-4 w-4 mr-2" />
+                افزودن اسلاید جدید
+              </Button>
+            </Link>
           </CardHeader>
           <CardContent>
-            <div className="py-4">
-              <div className="flex flex-col sm:flex-row items-center gap-3">
-                <Input
-                  placeholder="ایمیل را وارد کنید..."
-                  value={title}
-                  onChange={(e) => handleTitleChange(e.target.value)}
-                  className="max-w-sm"
-                />
-
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    onClick={clearFilters}
-                    disabled={isLoading}
-                    variant="outline"
-                    className="cursor-pointer"
-                  >
-                    پاک کردن
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={applyFilters}
-                    disabled={isLoading}
-                    className="cursor-pointer"
-                  >
-                    جستجو
-                  </Button>
-                </div>
-              </div>
-              {errorMessage && (
-                <p className="mt-1 text-red-500">{errorMessage}</p>
-              )}
-            </div>
             <div className="rounded-md border">
               <Table>
                 <TableHeader>

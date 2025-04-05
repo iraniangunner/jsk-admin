@@ -57,7 +57,7 @@ const sidebarItems: SidebarItemType[] = [
   {
     title: "اسلایدر",
     icon: Settings,
-    href: "/settings",
+    href: "/slides",
   },
   {
     title: "پروژه",

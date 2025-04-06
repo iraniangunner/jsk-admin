@@ -1,15 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CaretSortIcon, DotsHorizontalIcon } from "@radix-ui/react-icons";
+import { CaretSortIcon } from "@radix-ui/react-icons";
 import {
   type ColumnDef,
-  type ColumnFiltersState,
   type SortingState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
@@ -28,7 +26,6 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
@@ -40,7 +37,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  FileText,
   Eye,
   Trash2,
   Loader2,

@@ -20,7 +20,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { getSlideById, updateSlide } from "@/hooks/use-carousel";
-import { urlToFile } from "@/utils/client/urlToFile";
 
 export default function EditCarousel() {
   const router = useRouter();
@@ -50,33 +49,6 @@ export default function EditCarousel() {
       setImagePreview(data.full_path || "");
     }
   }, [data]);
-  // useEffect(() => {
-  //   const loadImageFromUrl = async () => {
-  //     if (!imageFile) {
-  //       const filename = data.full_path.split("/").pop() || "image.jpg";
-  //       const file = await urlToFile(data.full_path, filename);
-
-  //       setImageFile(file);
-
-  //       //store file for FormData later
-  //       const reader = new FileReader();
-  //       reader.onloadend = () => {
-  //         // setImagePreview(reader.result as string); // show preview
-  //       };
-  //       reader.readAsDataURL(file);
-  //     }
-  //   };
-
-  //   if (data) {
-  //     setText(data.text || "");
-  //     setTextEn(data.text_en || "");
-  //     setLinkAttachment(data.link || "");
-  //     setImagePreview(data.full_path || "");
-
-  //     // Only load image if no file is already selected
-  //     loadImageFromUrl();
-  //   }
-  // }, [data]);
 
   // Handle image change
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {

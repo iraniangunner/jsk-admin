@@ -1,18 +1,15 @@
 "use client";
 import { useState, useEffect } from "react";
-import { CaretSortIcon, DotsHorizontalIcon } from "@radix-ui/react-icons";
+import { CaretSortIcon } from "@radix-ui/react-icons";
 import {
   type ColumnDef,
-  type ColumnFiltersState,
   type SortingState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import ReactPaginate from "react-paginate";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -27,9 +24,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -38,17 +33,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  FileText,
-  Eye,
-  Trash2,
-  Loader2,
-  TriangleAlert,
-  ChevronRightIcon,
-  ChevronLeftIcon,
-  Edit,
-  Plus,
-} from "lucide-react";
+import { Trash2, Loader2, TriangleAlert, Edit, Plus } from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
@@ -66,18 +51,10 @@ const formatDate = (dateString: any) => {
 
 export function CarouselTable() {
   const [sorting, setSorting] = useState<SortingState>([
-    { id: "created_at",desc:true},
+    { id: "created_at", desc: true },
   ]);
-  const [page, setPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [forcePage, setForcePage] = useState<number | undefined>(undefined);
 
   const { data, isLoading, isError } = getSlides();
-
-  const handlePageChange = (selectedItem: { selected: number }) => {
-    setPage(selectedItem.selected + 1);
-    setForcePage(undefined);
-  };
 
   const columns: ColumnDef<Slide>[] = [
     {
@@ -244,12 +221,6 @@ export function CarouselTable() {
     },
   });
 
-  useEffect(() => {
-    if (forcePage !== undefined) {
-      setForcePage(undefined);
-    }
-  }, [forcePage]);
-
   return (
     <>
       <ToastContainer />
@@ -333,37 +304,6 @@ export function CarouselTable() {
                   )}
                 </TableBody>
               </Table>
-            </div>
-            <div className="flex items-center justify-between sm:justify-end py-4">
-              <ReactPaginate
-                previousLabel={<ChevronRightIcon className="h-4 w-4" />}
-                nextLabel={<ChevronLeftIcon className="h-4 w-4" />}
-                breakLabel="..."
-                // pageCount={data?.meta.last_page || 1}
-                pageCount={1}
-                marginPagesDisplayed={2}
-                pageRangeDisplayed={3}
-                onPageChange={handlePageChange}
-                forcePage={forcePage}
-                containerClassName="flex items-center space-x-1 space-x-reverse"
-                pageClassName="hidden sm:flex relative items-center"
-                pageLinkClassName="h-8 w-8 flex items-center justify-center rounded-md border border-input bg-background text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                previousClassName="relative flex items-center"
-                previousLinkClassName="h-8 w-8 flex items-center justify-center rounded-md border border-input bg-background text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                nextClassName="relative flex items-center"
-                nextLinkClassName="h-8 w-8 flex items-center justify-center rounded-md border border-input bg-background text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                breakClassName="hidden sm:flex relative items-center"
-                breakLinkClassName="hidden sm:flex h-8 w-8 flex items-center justify-center rounded-md border border-input bg-background text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                activeClassName="active"
-                activeLinkClassName="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
-                disabledClassName="opacity-50 pointer-events-none"
-              />
-
-              <div className="sm:hidden text-sm text-center mt-2 self-start">
-                صفحه {page} از
-                {/* {data?.meta.last_page || 1} */}
-                {1}
-              </div>
             </div>
           </CardContent>
         </Card>

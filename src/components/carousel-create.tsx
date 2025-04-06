@@ -1,7 +1,7 @@
 "use client";
 import type React from "react";
-import { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Loader2, ArrowLeft, ImageIcon } from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -13,7 +13,6 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

@@ -100,7 +100,6 @@ export const createNewSlide = async ({
   const response = await fetch("https://jsk-co.com/api/sliders", {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
       Authorization:
         "Bearer 3|aEbpCRb3dEf0gV3YyrmjFpmGdkEyYGxJue9ResHtb33d8a02",
     },
@@ -120,7 +119,7 @@ export const deleteSlide = () => {
   return useMutation({
     mutationFn: deleteSlideById,
     onSuccess: () => {
-      // Invalidate the comments query to refetch data after deletion
+      // Invalidate the slides query to refetch data after deletion
       queryClient.invalidateQueries({ queryKey: ["slides"] });
     },
   });
@@ -132,7 +131,7 @@ export const updateSlide = () => {
   return useMutation({
     mutationFn: updateSlideById,
     onSuccess: () => {
-      // Invalidate the comments query to refetch data after update
+      // Invalidate the slides query to refetch data after update
       queryClient.invalidateQueries({ queryKey: ["slides"] });
       queryClient.invalidateQueries({ queryKey: ["slide"] });
     },
@@ -145,7 +144,7 @@ export const createSlide = () => {
   return useMutation({
     mutationFn: createNewSlide,
     onSuccess: () => {
-      // Invalidate the comments query to refetch data after creation
+      // Invalidate the slides query to refetch data after creation
       queryClient.invalidateQueries({ queryKey: ["slides"] });
     },
   });

@@ -60,19 +60,19 @@ const sidebarItems: SidebarItemType[] = [
     href: "/slides",
   },
   {
-    title: "پروژه",
+    title: "پروژه ها",
     icon: HelpCircle,
-    href: "/help",
+    href: "/projects",
   },
   {
     title: "مناقصات",
     icon: HelpCircle,
-    href: "/help",
+    href: "/tenders",
   },
   {
     title: "فرصت های شغلی",
     icon: HelpCircle,
-    href: "/help",
+    href: "/jobs",
   },
 ];
 

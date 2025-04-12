@@ -2,10 +2,10 @@ import { Slide } from "@/types/carousel-types";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
 
-export type UpdateSlideData = {
-  id: number;
-  data: Partial<Slide>;
-};
+// export type UpdateSlideData = {
+//   id: number;
+//   data: Partial<Slide>;
+// };
 
 export const fetchSlides = async (): Promise<Slide[] | any> => {
   const response = await fetch("https://jsk-co.com/api/sliders", {

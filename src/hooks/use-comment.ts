@@ -1,9 +1,9 @@
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
-import { CommentSearchParams, PaginatedCommentResponse } from "@/types/comment-types";
+import { CommentSearchParams } from "@/types/comment-types";
 
 export const fetchComments = async (
-  params:CommentSearchParams
+  params: CommentSearchParams
 ): Promise<Comment[] | any> => {
   const queryParams = new URLSearchParams();
   if (params.page) {
@@ -36,16 +36,13 @@ export const fetchComments = async (
 };
 
 export const deleteCommentById = async (id: number): Promise<void> => {
-  const response = await fetch(
-    `https://jsk-co.com/api/comments/${id}`,
-    {
-      method: "DELETE",
-      headers: {
-        Authorization:
-          "Bearer 3|aEbpCRb3dEf0gV3YyrmjFpmGdkEyYGxJue9ResHtb33d8a02",
-      },
-    }
-  );
+  const response = await fetch(`https://jsk-co.com/api/comments/${id}`, {
+    method: "DELETE",
+    headers: {
+      Authorization:
+        "Bearer 3|aEbpCRb3dEf0gV3YyrmjFpmGdkEyYGxJue9ResHtb33d8a02",
+    },
+  });
 
   if (!response.ok) {
     throw new Error("Failed to delete comment");

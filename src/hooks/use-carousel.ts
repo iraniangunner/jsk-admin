@@ -2,11 +2,6 @@ import { Slide } from "@/types/carousel-types";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
 
-// export type UpdateSlideData = {
-//   id: number;
-//   data: Partial<Slide>;
-// };
-
 export const fetchSlides = async (): Promise<Slide[] | any> => {
   const response = await fetch("https://jsk-co.com/api/sliders", {
     headers: {
@@ -78,20 +73,6 @@ export const updateSlideById = async ({
   return response.json();
 };
 
-export const getSlides = () => {
-  return useQuery({
-    queryKey: ["slides"],
-    queryFn: () => fetchSlides(),
-  });
-};
-
-export const getSlideById = (id: string) => {
-  return useQuery({
-    queryKey: ["slide"],
-    queryFn: () => fetchSlideById(id),
-  });
-};
-
 export const createNewSlide = async ({
   formData,
 }: {
@@ -111,6 +92,20 @@ export const createNewSlide = async ({
   }
 
   return response.json();
+};
+
+export const getSlides = () => {
+  return useQuery({
+    queryKey: ["slides"],
+    queryFn: () => fetchSlides(),
+  });
+};
+
+export const getSlideById = (id: string) => {
+  return useQuery({
+    queryKey: ["slide"],
+    queryFn: () => fetchSlideById(id),
+  });
 };
 
 export const deleteSlide = () => {

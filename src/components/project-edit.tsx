@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, type ChangeEvent, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Loader2, Upload, X, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,10 +18,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { createProject } from "@/hooks/use-project";
+import { updateProject, getProjectById } from "@/hooks/use-project";
 import { getCategories } from "@/hooks/use-category";
 
-interface ProjectprojectFormData {
+interface ProjectFormData {
   title: string;
   title_en: string;
   employer: string;
@@ -35,37 +35,97 @@ interface ProjectprojectFormData {
 
 interface ImageItem {
   id: string;
-  file: File;
+  file?: File;
   preview: string;
+  isExisting?: boolean;
+  url?: string;
 }
 
 // Generate a unique ID
 const generateId = () => Math.random().toString(36).substring(2, 9);
 
-export function ProjectCreate() {
+export function EditProject() {
   const router = useRouter();
-  const [projectFormData, setProjectFormData] =
-    useState<ProjectprojectFormData>({
-      title: "",
-      title_en: "",
-      employer: "",
-      employer_en: "",
-      start_date: "",
-      location: "",
-      location_en: "",
-      text: "",
-      text_en: "",
-    });
+  const params = useParams();
+  const projectId = params.id as string;
+  const [projectFormData, setProjectFormData] = useState<ProjectFormData>({
+    title: "",
+    title_en: "",
+    employer: "",
+    employer_en: "",
+    start_date: "",
+    location: "",
+    location_en: "",
+    text: "",
+    text_en: "",
+  });
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
+  const [existingVideo, setExistingVideo] = useState<string | null>(null);
   const [imageItems, setImageItems] = useState<ImageItem[]>([]);
+  const [existingImagesToDelete, setExistingImagesToDelete] = useState<
+    string[]
+  >([]);
 
   // Update mutation
-  const { mutate: createProjectMutation, isPending: isSaving } =
-    createProject();
+  const { mutate: updateProjectMutation, isPending: isSaving } =
+    updateProject();
+
   // Get categories
-  const { data, isLoading, isError } = getCategories();
+  const { data: categories, isLoading: categoriesLoading } = getCategories();
+
+  // Get project data
+  const {
+    data: projectData,
+    isLoading: projectLoading,
+    isError: projectError,
+  } = getProjectById(projectId);
+
+  // Add a useEffect to update form state when project data is loaded
+  useEffect(() => {
+    if (projectData) {
+      // Set form data
+      setProjectFormData({
+        title: projectData.title || "",
+        title_en: projectData.title_en || "",
+        employer: projectData.employer || "",
+        employer_en: projectData.employer_en || "",
+        start_date: projectData.start_date || "",
+        location: projectData.location || "",
+        location_en: projectData.location_en || "",
+        text: projectData.text || "",
+        text_en: projectData.text_en || "",
+      });
+
+      // Set categories
+      if (projectData.categories && Array.isArray(projectData.categories)) {
+        setSelectedCategories(projectData.categories.map((cat: any) => cat.id));
+      }
+
+      // Set video
+      if (projectData.video) {
+        setExistingVideo(projectData.video);
+        setVideoPreview(projectData.video);
+      }
+      // Set video to null if the value is video
+      if (typeof projectData.video === "string") {
+        setExistingVideo(null);
+        setVideoPreview(null);
+      }
+
+      // Set images
+      if (projectData.images && Array.isArray(projectData.images)) {
+        const existingImages = projectData.images.map((img: any) => ({
+          id: generateId(),
+          preview: img.full_path,
+          isExisting: true,
+          url: img.url,
+        }));
+        setImageItems(existingImages);
+      }
+    }
+  }, [projectData]);
 
   const handleInputChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -90,6 +150,7 @@ export function ProjectCreate() {
       setVideoFile(file);
       const url = URL.createObjectURL(file);
       setVideoPreview(url);
+      setExistingVideo(null); // Clear existing video reference
     }
   };
 
@@ -103,6 +164,7 @@ export function ProjectCreate() {
         id: generateId(),
         file,
         preview: URL.createObjectURL(file),
+        isExisting: false,
       }));
 
       setImageItems((prev) => [...prev, ...newImageItems]);
@@ -114,7 +176,12 @@ export function ProjectCreate() {
       const itemToRemove = prevItems.find((item) => item.id === id);
       if (itemToRemove) {
         // Revoke the object URL to avoid memory leaks
-        URL.revokeObjectURL(itemToRemove.preview);
+        if (!itemToRemove.isExisting) {
+          URL.revokeObjectURL(itemToRemove.preview);
+        } else if (itemToRemove.url) {
+          // Mark existing image for deletion on the server
+          setExistingImagesToDelete((prev) => [...prev, itemToRemove.url!]);
+        }
       }
 
       // Return a new array without the removed item
@@ -123,27 +190,24 @@ export function ProjectCreate() {
   };
 
   const removeVideo = () => {
-    if (videoPreview) {
+    if (videoPreview && !existingVideo) {
       URL.revokeObjectURL(videoPreview);
     }
     setVideoFile(null);
     setVideoPreview(null);
+    setExistingVideo(null);
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    if (
-      !projectFormData.employer ||
-      !projectFormData.text ||
-      !projectFormData.text
-    ) {
+    if (!projectFormData.employer || !projectFormData.text) {
       toast.error("لطفا فیلدهای ضروری را پر کنید");
       return;
     }
 
     try {
-      // Create projectFormData for file uploads
+      // Create formData for file uploads
       const formData = new FormData();
 
       // Add form values
@@ -163,34 +227,35 @@ export function ProjectCreate() {
         formData.append("video", videoFile);
       }
 
-      // Add images
-      imageItems.forEach((item, index) => {
-        formData.append(`images[${index}]`, item.file);
+      // Add all images (both new and existing that weren't removed)
+      const imagesToUpload = imageItems.filter(
+        (item) => !item.isExisting && item.file
+      );
+      imagesToUpload.forEach((item, index) => {
+        if (item.file) {
+          formData.append(`images[${index}]`, item.file);
+        }
       });
-      // console.log(formData.values())
+
+      formData.append("_method", "PUT");
+
       // Send to API
-      createProjectMutation(
-        { formData },
+      updateProjectMutation(
+        { id: projectId, formData },
         {
           onSuccess: () => {
-            toast.success("پروژه با موفقیت اضافه شد");
-            // Navigate back to slides list after successful update
+            toast.success("پروژه با موفقیت بروزرسانی شد");
+            // Navigate back to projects list after successful update
             setTimeout(() => {
               router.push("/projects");
             }, 1500);
           },
           onError: (error) => {
             console.error("Update failed:", error);
-            toast.error("خطا در ایجاد پروژه. لطفا دوباره تلاش کنید.");
+            toast.error("خطا در بروزرسانی پروژه. لطفا دوباره تلاش کنید.");
           },
         }
       );
-      toast.success("پروژه با موفقیت ایجاد شد");
-
-      // Redirect to projects list
-      setTimeout(() => {
-        router.push("/projects");
-      }, 1500);
     } catch (error) {
       console.error("Error submitting form:", error);
       toast.error(
@@ -202,17 +267,42 @@ export function ProjectCreate() {
   // Clean up object URLs when component unmounts
   useEffect(() => {
     return () => {
-      imageItems.forEach((item) => URL.revokeObjectURL(item.preview));
-      if (videoPreview) URL.revokeObjectURL(videoPreview);
+      imageItems
+        .filter((item) => !item.isExisting)
+        .forEach((item) => URL.revokeObjectURL(item.preview));
+
+      if (videoPreview && !existingVideo) URL.revokeObjectURL(videoPreview);
     };
-  }, [imageItems, videoPreview]);
+  }, [imageItems, videoPreview, existingVideo]);
+
+  if (projectLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="mr-2">در حال بارگذاری...</span>
+      </div>
+    );
+  }
+
+  if (projectError) {
+    return (
+      <div className="flex justify-center items-center h-64 flex-col">
+        <p className="text-destructive text-lg mb-4">
+          خطا در بارگذاری اطلاعات پروژه
+        </p>
+        <Button variant="outline" onClick={() => router.push("/projects")}>
+          بازگشت به لیست پروژه‌ها
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <>
       <ToastContainer />
       <div className="container py-10 max-w-4xl mx-auto" dir="rtl">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">ایجاد پروژه جدید</h1>
+          <h1 className="text-2xl font-bold">ویرایش پروژه</h1>
           <Button
             variant="outline"
             className="cursor-pointer"
@@ -225,8 +315,8 @@ export function ProjectCreate() {
 
         <Card>
           <CardHeader>
-            <CardTitle>ایجاد پروژه جدید</CardTitle>
-            <CardDescription>اطلاعات پروژه جدید را وارد کنید</CardDescription>
+            <CardTitle>ویرایش پروژه</CardTitle>
+            <CardDescription>اطلاعات پروژه را ویرایش کنید</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -293,12 +383,11 @@ export function ProjectCreate() {
                   حداقل یک دسته‌بندی را انتخاب کنید
                 </p>
                 <div className="grid grid-cols-2 gap-2 pt-2">
-                  {isLoading ? (
+                  {categoriesLoading ? (
                     <p>loading....</p>
                   ) : (
                     <>
-                      {" "}
-                      {data.map((category: any) => (
+                      {categories.map((category: any) => (
                         <div
                           key={category.id}
                           className="flex items-center space-x-2 space-x-reverse"
@@ -480,7 +569,7 @@ export function ProjectCreate() {
                         </Button>
                         <img
                           src={item.preview || "/placeholder.svg"}
-                          alt={`Preview ${item.file.name}`}
+                          alt={`Preview ${item.file?.name || "Image"}`}
                           className="w-full h-32 object-cover rounded-lg"
                         />
                       </div>
@@ -490,7 +579,15 @@ export function ProjectCreate() {
               </div>
             </div>
           </CardContent>
-          <CardFooter className="flex justify-center">
+          <CardFooter className="flex justify-between">
+            <Button
+              variant="outline"
+              className="cursor-pointer"
+              onClick={() => router.push("/projects")}
+              disabled={isSaving}
+            >
+              انصراف
+            </Button>
             <Button
               onClick={handleSubmit}
               disabled={isSaving}
@@ -499,10 +596,10 @@ export function ProjectCreate() {
               {isSaving ? (
                 <>
                   <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                  در حال ارسال...
+                  در حال بروزرسانی...
                 </>
               ) : (
-                "ایجاد پروژه"
+                "ذخیره تغییرات"
               )}
             </Button>
           </CardFooter>

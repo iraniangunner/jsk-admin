@@ -57,7 +57,7 @@ import {
   CooperationSearchParams,
 } from "@/types/cooperation-types";
 import { deleteCooperation, getCooperations } from "@/hooks/use-cooperation";
-import { getProjects } from "@/hooks/use-project";
+import { deleteProject, getProjects } from "@/hooks/use-project";
 import { Project, ProjectSearchParams } from "@/types/project-types";
 import { getCategories } from "@/hooks/use-category";
 import {
@@ -205,7 +205,7 @@ export function ProjectTable() {
         const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
         const { mutate: deleteProjectById, isPending: isDeleting } =
-          deleteCooperation();
+          deleteProject();
 
         const handleDelete = () => {
           deleteProjectById(project.id, {

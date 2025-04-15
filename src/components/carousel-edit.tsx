@@ -24,7 +24,7 @@ export default function EditCarousel() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  // const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form state
   const [text, setText] = useState("");
@@ -250,7 +250,7 @@ export default function EditCarousel() {
                     <div className="flex items-center gap-2">
                       <Input
                         id="image"
-                        ref={fileInputRef}
+                        // ref={fileInputRef}
                         type="file"
                         accept="image/*"
                         onChange={handleImageChange}

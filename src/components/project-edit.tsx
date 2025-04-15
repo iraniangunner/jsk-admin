@@ -171,20 +171,35 @@ export function EditProject() {
     }
   };
 
-  const removeImage = (id: string) => {
-    setImageItems((prevItems) => {
-      const itemToRemove = prevItems.find((item) => item.id === id);
-      if (itemToRemove) {
-        // Revoke the object URL to avoid memory leaks
-        if (!itemToRemove.isExisting) {
-          URL.revokeObjectURL(itemToRemove.preview);
-        } else if (itemToRemove.url) {
-          // Mark existing image for deletion on the server
-          setExistingImagesToDelete((prev) => [...prev, itemToRemove.url!]);
-        }
-      }
+  //   console.log(existingImagesToDelete);
+  //   console.log(imageItems);
+
+//   const removeImage = (id: string) => {
+//     setImageItems((prevItems) => {
+      //   const itemToRemove = prevItems.find((item) => item.id === id);
+      //   if (itemToRemove) {
+      //     // Revoke the object URL to avoid memory leaks
+      //     if (!itemToRemove.isExisting) {
+      //       URL.revokeObjectURL(itemToRemove.preview);
+      //     } else if (itemToRemove.url) {
+      //       // Mark existing image for deletion on the server
+      //       setExistingImagesToDelete((prev) => [...prev, itemToRemove.url!]);
+      //     }
+      //   }
 
       // Return a new array without the removed item
+//       return prevItems.filter((item) => item.id !== id);
+//     });
+//   };
+
+  const removeImage = (id: string) => {
+    setImageItems((prevItems) => {
+      // Clean up memory for new images before removing
+      const itemToRemove = prevItems.find(item => item.id === id);
+      if (itemToRemove && !itemToRemove.isExisting) {
+        URL.revokeObjectURL(itemToRemove.preview);
+      }
+      
       return prevItems.filter((item) => item.id !== id);
     });
   };
@@ -228,10 +243,10 @@ export function EditProject() {
       }
 
       // Add all images (both new and existing that weren't removed)
-      const imagesToUpload = imageItems.filter(
-        (item) => !item.isExisting && item.file
-      );
-      imagesToUpload.forEach((item, index) => {
+      //   const imagesToUpload = imageItems.filter(
+      //     (item) => item.isExisting && !item.file
+      //   );
+      imageItems.forEach((item, index) => {
         if (item.file) {
           formData.append(`images[${index}]`, item.file);
         }

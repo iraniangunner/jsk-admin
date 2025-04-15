@@ -1,11 +1,10 @@
 "use client";
 import type React from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Loader2, ArrowLeft, ImageIcon } from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -25,6 +24,7 @@ export default function EditCarousel() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form state
   const [text, setText] = useState("");
@@ -32,6 +32,10 @@ export default function EditCarousel() {
   const [linkAttachment, setLinkAttachment] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedFileName, setSelectedFileName] = useState<string>(
+    "هیچ فایلی انتخاب نشده است"
+  );
+  // const [serverImageUrl, setServerImageUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Fetch slide data
@@ -40,15 +44,44 @@ export default function EditCarousel() {
   // Update mutation
   const { mutate: updateSlideMutation, isPending: isSaving } = updateSlide();
 
-  // Set form values when data is loaded
+  // Set form values when data is loaded and automatically fetch the image as a File
   useEffect(() => {
     if (data) {
       setText(data.text || "");
       setTextEn(data.text_en || "");
       setLinkAttachment(data.link || "");
       setImagePreview(data.full_path || "");
+
+      // Automatically fetch the image and convert to File
+      // if (data.full_path) {
+      //   fetchImageFromUrl(data.full_path);
+      // }
     }
   }, [data]);
+
+  // Add this function to fetch and convert image to File
+  const fetchImageFromUrl = async (url: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+
+      // Extract filename from URL or use a default name
+      const filename = url.split("/").pop() || "image.jpg";
+
+      // Create a File object from the blob
+      const file = new File([blob], filename, { type: blob.type });
+
+      // Set the file in state
+      setImageFile(file);
+      // setSelectedFileName(filename);
+
+      console.log("Image automatically loaded as File object");
+    } catch (err) {
+      console.error("Error automatically fetching image:", err);
+    }
+  };
+
+  console.log(imageFile);
 
   // Handle image change
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,6 +89,7 @@ export default function EditCarousel() {
     if (!file) return;
 
     setImageFile(file);
+    // setSelectedFileName(file.name);
 
     // Create preview URL
     const reader = new FileReader();
@@ -216,10 +250,12 @@ export default function EditCarousel() {
                     <div className="flex items-center gap-2">
                       <Input
                         id="image"
+                        ref={fileInputRef}
                         type="file"
                         accept="image/*"
                         onChange={handleImageChange}
                       />
+                      {/* <p className="text-sm text-muted-foreground">{selectedFileName}</p> */}
                       <Button
                         type="button"
                         variant="outline"
@@ -232,8 +268,8 @@ export default function EditCarousel() {
                       </Button>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      برای تغییر تصویر، فایل جدید را انتخاب کنید. در غیر این
-                      صورت، تصویر فعلی حفظ خواهد شد.
+                      تصویر فعلی به صورت خودکار بارگذاری شده است. برای تغییر
+                      تصویر، فایل جدید را انتخاب کنید.
                     </p>
                   </div>
                 </div>

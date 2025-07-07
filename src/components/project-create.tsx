@@ -21,7 +21,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { createProject } from "@/hooks/use-project";
 import { getCategories } from "@/hooks/use-category";
 
-interface ProjectprojectFormData {
+interface ProjectFormData {
   title: string;
   title_en: string;
   employer: string;
@@ -45,7 +45,7 @@ const generateId = () => Math.random().toString(36).substring(2, 9);
 export function ProjectCreate() {
   const router = useRouter();
   const [projectFormData, setProjectFormData] =
-    useState<ProjectprojectFormData>({
+    useState<ProjectFormData>({
       title: "",
       title_en: "",
       employer: "",

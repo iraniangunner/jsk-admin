@@ -70,10 +70,20 @@ const sidebarItems: SidebarItemType[] = [
     href: "/tenders",
   },
   {
-    title: "فرصت های شغلی",
+    title: "شهرهای متقاضی مشاغل",
     icon: HelpCircle,
-    href: "/jobs",
+    href: "/job-cities",
   },
+  {
+    title: "دسته بندی مشاغل",
+    icon: HelpCircle,
+    href: "/job-categories",
+  },
+  // {
+  //   title: "فرصت های شغلی",
+  //   icon: HelpCircle,
+  //   href: "/job-opportunities",
+  // },
 ];
 
 export function AppSidebar() {

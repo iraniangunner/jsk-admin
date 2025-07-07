@@ -1,18 +1,16 @@
 "use client";
+
 import { useState, useEffect } from "react";
-import { CaretSortIcon, DotsHorizontalIcon } from "@radix-ui/react-icons";
+import { CaretSortIcon } from "@radix-ui/react-icons";
 import {
   type ColumnDef,
-  type ColumnFiltersState,
   type SortingState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import ReactPaginate from "react-paginate";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -29,7 +27,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -38,24 +35,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  FileText,
-  Eye,
-  Trash2,
-  Loader2,
-  TriangleAlert,
-  ChevronRightIcon,
-  ChevronLeftIcon,
-} from "lucide-react";
+import { Trash2, Loader2, TriangleAlert, Edit, Plus } from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
-import {
-  Cooperation,
-  CooperationSearchParams,
-} from "@/types/cooperation-types";
-import { deleteCooperation, getCooperations } from "@/hooks/use-cooperation";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { JobCity } from "@/types/jobCity-types";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
+import { deleteJobCategory, getJobCategories } from "@/hooks/use-jobCategory";
 
 const formatDate = (dateString: any) => {
   try {
@@ -66,31 +52,14 @@ const formatDate = (dateString: any) => {
   }
 };
 
-export function CooperationTable() {
+export function JobCategoryTable() {
   const [sorting, setSorting] = useState<SortingState>([
     { id: "created_at", desc: true },
   ]);
-  const [page, setPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [title, setTitle] = useState("");
-  const [appliedTitle, setAppliedTitle] = useState("");
-  const [forcePage, setForcePage] = useState<number | undefined>(undefined);
-  const [errorMessage, setErrorMessage] = useState<string>("");
 
-  const searchParams: CooperationSearchParams = {
-    page: page ? page : undefined,
-    per_page: itemsPerPage ? itemsPerPage : undefined,
-    title: appliedTitle.length >= 2 ? appliedTitle : undefined,
-  };
+  const { data, isLoading, isError } = getJobCategories();
 
-  const { data, isLoading, isError } = getCooperations(searchParams);
-
-  const handlePageChange = (selectedItem: { selected: number }) => {
-    setPage(selectedItem.selected + 1);
-    setForcePage(undefined);
-  };
-
-  const columns: ColumnDef<Cooperation>[] = [
+  const columns: ColumnDef<JobCity>[] = [
     {
       accessorKey: "id",
       header: ({ column }) => {
@@ -100,34 +69,26 @@ export function CooperationTable() {
         <div className="text-center">{row.getValue("id")}</div>
       ),
     },
+
     {
-      accessorKey: "company_name",
+      accessorKey: "title",
       header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="text-center w-full"
-          >
-            <CaretSortIcon className="ml-2 h-4 w-4" />
-            نام شرکت
-          </Button>
-        );
+        return <div className="text-center">متن فارسی</div>;
       },
       cell: ({ row }) => (
-        <div className="text-center">{row.getValue("company_name")}</div>
-      ),
-    },
-    {
-      accessorKey: "phone",
-      header: ({ column }) => {
-        return <div className="text-center">تلفن ثابت</div>;
-      },
-      cell: ({ row }) => (
-        <div className="text-center">{row.getValue("phone")}</div>
+        <div className="text-center">{row.getValue("title")}</div>
       ),
     },
 
+    {
+      accessorKey: "title_en",
+      header: ({ column }) => {
+        return <div className="text-center">متن انگلیسی</div>;
+      },
+      cell: ({ row }) => (
+        <div className="text-center">{row.getValue("title_en")}</div>
+      ),
+    },
     {
       accessorKey: "created_at",
       header: ({ column }) => {
@@ -138,7 +99,7 @@ export function CooperationTable() {
             className="text-center w-full"
           >
             <CaretSortIcon className="ml-2 h-4 w-4" />
-            تاریخ ارسال
+            تاریخ ایجاد
           </Button>
         );
       },
@@ -147,20 +108,21 @@ export function CooperationTable() {
         return <div className="text-center">{formatDate(created_at)}</div>;
       },
     },
+
     {
       id: "actions",
       header: ({ column }) => {
         return <div className="text-center">عملیات</div>;
       },
       cell: ({ row }) => {
-        const cooperation = row.original;
+        const jobCategory = row.original;
         const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-        const { mutate: deleteCooperationById, isPending: isDeleting } =
-          deleteCooperation();
+        const { mutate: deleteJobCategorytById, isPending: isDeleting } =
+          deleteJobCategory();
 
         const handleDelete = () => {
-          deleteCooperationById(cooperation.id, {
+            deleteJobCategorytById(jobCategory.id, {
             onSuccess: () => {
               toast.success("آیتم مورد نظر حذف شد");
               setShowDeleteDialog(false);
@@ -176,14 +138,14 @@ export function CooperationTable() {
               variant="ghost"
               size="icon"
               className="cursor-pointer"
-              title="مشاهده همکاری"
+              title="ویرایش دسته بندی"
             >
               <Link
-                href={`/cooperations/${cooperation.id}`}
+                href={`/job-categories/${jobCategory.id}/edit`}
                 className="w-full h-full flex justify-center items-center"
               >
-                <Eye className="h-4 w-4" />
-                <span className="sr-only">مشاهده همکاری</span>
+                <Edit className="h-4 w-4" />
+                <span className="sr-only">ویرایش دسته بندی</span>
               </Link>
             </Button>
 
@@ -192,10 +154,10 @@ export function CooperationTable() {
               size="icon"
               onClick={() => setShowDeleteDialog(true)}
               className="text-destructive hover:bg-destructive/10 cursor-pointer"
-              title="حذف همکاری"
+              title="حذف دسته بندی"
             >
               <Trash2 className="h-4 w-4" />
-              <span className="sr-only">حذف همکاری</span>
+              <span className="sr-only">حذف دسته بندی</span>
             </Button>
 
             <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
@@ -205,7 +167,7 @@ export function CooperationTable() {
                     <DialogTitle>Hidden Dialog Title</DialogTitle>
                   </VisuallyHidden>
                   <DialogDescription className="sm:text-lg">
-                    آیا از حذف این درخواست همکاری اطمینان دارید؟
+                    آیا از حذف این دسته بندی اطمینان دارید؟
                   </DialogDescription>
                 </DialogHeader>
                 <DialogFooter className="flex flex-row gap-2 justify-center">
@@ -242,7 +204,7 @@ export function CooperationTable() {
   ];
 
   const table = useReactTable({
-    data: data?.data || [],
+    data: data || [],
     columns,
     onSortingChange: setSorting,
     // onColumnFiltersChange: setColumnFilters,
@@ -256,81 +218,26 @@ export function CooperationTable() {
     },
   });
 
-  const handleTitleChange = (value: string) => {
-    setTitle(value);
-  };
-
-  const applyFilters = () => {
-    if (title && title.length < 2) {
-      setErrorMessage("باید حداقل شامل ۲ حرف باشد.");
-      return;
-    }
-    setErrorMessage("");
-    setAppliedTitle(title);
-    setPage(1);
-    setForcePage(0);
-  };
-
-  const clearFilters = () => {
-    setErrorMessage("");
-    setTitle("");
-    setAppliedTitle("");
-    setPage(1);
-    setForcePage(0);
-  };
-
-  useEffect(() => {
-    if (forcePage !== undefined) {
-      setForcePage(undefined);
-    }
-  }, [forcePage]);
-
   return (
     <>
       <ToastContainer />
       <div className="w-full" dir="rtl">
         <Card>
-          <CardHeader>
-            <CardTitle>مدیریت همکاری شرکت ها</CardTitle>
-            <CardDescription>
-              لیست همکاری های ارسال شده به سیستم. برای مرتب‌سازی بر اساس تاریخ
-              ثبت، روی ستون تاریخ ثبت کلیک کنید.
-            </CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>مدیریت دسته بندی مشاغل</CardTitle>
+              <CardDescription className="mt-2">
+                لیست دسته بندی های واحد های متقاضی شغل
+              </CardDescription>
+            </div>
+            <Link href="/job-categories/create">
+              <Button className="cursor-pointer">
+                <Plus className="h-4 w-4 mr-2" />
+                افزودن دسته بندی جدید
+              </Button>
+            </Link>
           </CardHeader>
           <CardContent>
-            <div className="py-4">
-              <div className="flex flex-col sm:flex-row items-center gap-3">
-                <Input
-                  placeholder="نام شرکت را وارد کنید ..."
-                  value={title}
-                  onChange={(e) => handleTitleChange(e.target.value)}
-                  className="max-w-sm"
-                />
-
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    onClick={clearFilters}
-                    disabled={isLoading}
-                    variant="outline"
-                    className="cursor-pointer"
-                  >
-                    پاک کردن
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={applyFilters}
-                    disabled={isLoading}
-                    className="cursor-pointer"
-                  >
-                    جستجو
-                  </Button>
-                </div>
-              </div>
-              {errorMessage && (
-                <p className="mt-1 text-red-500">{errorMessage}</p>
-              )}
-            </div>
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
@@ -368,7 +275,7 @@ export function CooperationTable() {
                         <span className="mr-2">مشکلی رخ داده...</span>
                       </div>
                     </TableCell>
-                  ) : data?.data.length ? (
+                  ) : data?.length ? (
                     table.getRowModel().rows.map((row) => (
                       <TableRow key={row.id}>
                         {row.getVisibleCells().map((cell) => (
@@ -393,37 +300,6 @@ export function CooperationTable() {
                   )}
                 </TableBody>
               </Table>
-            </div>
-            <div className="flex items-center justify-between sm:justify-end py-4">
-              <ReactPaginate
-                previousLabel={<ChevronRightIcon className="h-4 w-4" />}
-                nextLabel={<ChevronLeftIcon className="h-4 w-4" />}
-                breakLabel="..."
-                // pageCount={data?.meta.last_page || 1}
-                pageCount={1}
-                marginPagesDisplayed={2}
-                pageRangeDisplayed={3}
-                onPageChange={handlePageChange}
-                forcePage={forcePage}
-                containerClassName="flex items-center space-x-1 space-x-reverse"
-                pageClassName="hidden sm:flex relative items-center"
-                pageLinkClassName="h-8 w-8 flex items-center justify-center rounded-md border border-input bg-background text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                previousClassName="relative flex items-center"
-                previousLinkClassName="h-8 w-8 flex items-center justify-center rounded-md border border-input bg-background text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                nextClassName="relative flex items-center"
-                nextLinkClassName="h-8 w-8 flex items-center justify-center rounded-md border border-input bg-background text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                breakClassName="hidden sm:flex relative items-center"
-                breakLinkClassName="hidden sm:flex h-8 w-8 flex items-center justify-center rounded-md border border-input bg-background text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                activeClassName="active"
-                activeLinkClassName="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
-                disabledClassName="opacity-50 pointer-events-none"
-              />
-
-              <div className="sm:hidden text-sm text-center mt-2 self-start">
-                صفحه {page} از
-                {/* {data?.meta.last_page || 1} */}
-                {1}
-              </div>
             </div>
           </CardContent>
         </Card>

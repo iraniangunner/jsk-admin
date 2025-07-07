@@ -26,6 +26,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
@@ -49,6 +50,7 @@ import { deleteResume, getResumes } from "@/hooks/use-resume";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 const formatDate = (dateString: any) => {
   try {
@@ -212,6 +214,9 @@ export function ResumeTable() {
             <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
               <DialogContent>
                 <DialogHeader>
+                  <VisuallyHidden>
+                    <DialogTitle>Hidden Dialog Title</DialogTitle>
+                  </VisuallyHidden>
                   <DialogDescription className="sm:text-lg">
                     آیا از حذف این رزومه اطمینان دارید؟
                   </DialogDescription>

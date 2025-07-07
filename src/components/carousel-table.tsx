@@ -24,6 +24,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import {
   Table,
@@ -39,6 +40,7 @@ import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
 import { deleteSlide, getSlides } from "@/hooks/use-carousel";
 import { Slide } from "@/types/carousel-types";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 const formatDate = (dateString: any) => {
   try {
@@ -169,6 +171,9 @@ export function CarouselTable() {
             <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
               <DialogContent>
                 <DialogHeader>
+                  <VisuallyHidden>
+                    <DialogTitle>Hidden Dialog Title</DialogTitle>
+                  </VisuallyHidden>
                   <DialogDescription className="sm:text-lg">
                     آیا از حذف این اسلاید اطمینان دارید؟
                   </DialogDescription>

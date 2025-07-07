@@ -52,6 +52,7 @@ import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
 import { deleteComment, getComments } from "@/hooks/use-comment";
 import { CommentSearchParams, Comment } from "@/types/comment-types";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 const formatDate = (dateString: any) => {
   try {
@@ -180,6 +181,9 @@ export function CommentTable() {
             <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
               <DialogContent>
                 <DialogHeader>
+                  <VisuallyHidden>
+                    <DialogTitle>Hidden Dialog Title</DialogTitle>
+                  </VisuallyHidden>
                   <DialogDescription className="sm:text-lg">
                     آیا از حذف این پیام اطمینان دارید؟
                   </DialogDescription>
@@ -269,8 +273,8 @@ export function CommentTable() {
           <CardHeader>
             <CardTitle>مدیریت پیام های ارسالی</CardTitle>
             <CardDescription>
-              لیست پیام های ارسالی به سیستم. برای مرتب‌سازی بر اساس تاریخ
-              ثبت، روی ستون تاریخ ثبت کلیک کنید.
+              لیست پیام های ارسالی به سیستم. برای مرتب‌سازی بر اساس تاریخ ثبت،
+              روی ستون تاریخ ثبت کلیک کنید.
             </CardDescription>
           </CardHeader>
           <CardContent>

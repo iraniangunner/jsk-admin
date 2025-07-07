@@ -52,11 +52,6 @@ import {
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
-import {
-  Cooperation,
-  CooperationSearchParams,
-} from "@/types/cooperation-types";
-import { deleteCooperation, getCooperations } from "@/hooks/use-cooperation";
 import { deleteProject, getProjects } from "@/hooks/use-project";
 import { Project, ProjectSearchParams } from "@/types/project-types";
 import { getCategories } from "@/hooks/use-category";
@@ -67,6 +62,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 const formatDate = (dateString: any) => {
   try {
@@ -249,6 +245,9 @@ export function ProjectTable() {
             <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
               <DialogContent>
                 <DialogHeader>
+                <VisuallyHidden>
+                    <DialogTitle>Hidden Dialog Title</DialogTitle>
+                  </VisuallyHidden>
                   <DialogDescription className="sm:text-lg">
                     آیا از حذف این پروژه اطمینان دارید؟
                   </DialogDescription>

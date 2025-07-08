@@ -1,7 +1,12 @@
-export default function Projects() {
+import { JobOpportunityTable } from "@/components/jobOpportunity-table";
+import QueryProvider from "@/providers/query-provider";
+
+export default function JobCities() {
   return (
-    <div>
-      <h1>JJJJJJ</h1>
+    <div className="my-6 mt-12 mx-4">
+      <QueryProvider>
+        <JobOpportunityTable />
+      </QueryProvider>
     </div>
   );
 }

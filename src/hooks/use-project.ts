@@ -129,7 +129,7 @@ export const updateProject = () => {
     onSuccess: () => {
       // Invalidate the projects query to refetch data after update
       queryClient.invalidateQueries({ queryKey: ["projects"] });
-      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      queryClient.invalidateQueries({ queryKey: ["project"] });
     },
   });
 };

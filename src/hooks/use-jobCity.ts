@@ -63,7 +63,7 @@ export const updateJobCityById = async ({
 }: {
   id: string;
   data: UpdateJobCityRequest;
-}): Promise<JobCity> => {
+}) => {
   const response = await fetch(`${API_BASE_URL}/cities/${id}`, {
     method: "PUT", // or PATCH depending on your API
     headers: {
@@ -77,7 +77,7 @@ export const updateJobCityById = async ({
     throw new Error("Failed to update job city");
   }
 
-  return response.json();
+  return;
 };
 
 export const createNewJobCity = async ({

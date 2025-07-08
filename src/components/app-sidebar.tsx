@@ -79,11 +79,11 @@ const sidebarItems: SidebarItemType[] = [
     icon: HelpCircle,
     href: "/job-categories",
   },
-  // {
-  //   title: "فرصت های شغلی",
-  //   icon: HelpCircle,
-  //   href: "/job-opportunities",
-  // },
+  {
+    title: "فرصت های شغلی",
+    icon: HelpCircle,
+    href: "/job-opportunities",
+  },
 ];
 
 export function AppSidebar() {

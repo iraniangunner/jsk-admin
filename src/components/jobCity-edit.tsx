@@ -197,7 +197,7 @@ export function EditJobCity() {
                   در حال به‌روزرسانی...
                 </>
               ) : (
-                "به روز رسانی شهر"
+                "به روز رسانی"
               )}
             </Button>
           </CardFooter>

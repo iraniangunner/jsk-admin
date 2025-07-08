@@ -198,7 +198,7 @@ export function EditJobCategory() {
                   در حال به‌روزرسانی...
                 </>
               ) : (
-                "به روزرسانی دسته بندی"
+                "به روز رسانی"
               )}
             </Button>
           </CardFooter>

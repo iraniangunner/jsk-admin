@@ -35,16 +35,13 @@ interface StructuredJobData {
   responsibilities: string[];
 }
 
-interface JobOpportunityEditFormProps {
-  //   jobId: string
-  onSuccess?: (jobOpportunity: JobOpportunity) => void;
-  onCancel?: () => void;
-}
+// interface JobOpportunityEditFormProps {
+//   //   jobId: string
+//   onSuccess?: (jobOpportunity: JobOpportunity) => void;
+//   onCancel?: () => void;
+// }
 
-export default function JobOpportunityEdit({
-  onSuccess,
-  onCancel,
-}: JobOpportunityEditFormProps) {
+export default function JobOpportunityEdit() {
   const router = useRouter();
   const params = useParams();
   const jobId = params.id as string;
@@ -236,15 +233,10 @@ export default function JobOpportunityEdit({
       updateJobMutation(
         { id: jobId, data },
         {
-          onSuccess: (result) => {
+          onSuccess: () => {
             toast.success("فرصت شغلی با موفقیت به‌روزرسانی شد");
-            //onSuccess?.(result);
             setTimeout(() => {
-              if (onCancel) {
-                onCancel();
-              } else {
-                router.back();
-              }
+              router.push("/job-opportunities");
             }, 1500);
           },
           onError: (error) => {
@@ -279,9 +271,9 @@ export default function JobOpportunityEdit({
             <Button
               variant="outline"
               className="mt-4 bg-transparent"
-              onClick={() => (onCancel ? onCancel() : router.back())}
+              onClick={() => router.push("/job-categories")}
             >
-              بازگشت
+              بازگشت به لیست
             </Button>
           </CardContent>
         </Card>
@@ -298,10 +290,10 @@ export default function JobOpportunityEdit({
           <Button
             variant="outline"
             className="cursor-pointer bg-transparent"
-            onClick={() => (onCancel ? onCancel() : router.back())}
+            onClick={() => router.push("/job-opportunities")}
           >
             <ArrowLeft className="ml-2 h-4 w-4" />
-            بازگشت
+            بازگشت به لیست
           </Button>
         </div>
 
@@ -365,7 +357,6 @@ export default function JobOpportunityEdit({
                       {categories?.map((category) => (
                         <option key={category.id} value={category.id}>
                           {category.title}
-                         
                         </option>
                       ))}
                     </select>

@@ -52,36 +52,41 @@ export default function EditCarousel() {
       setLinkAttachment(data.link || "");
       setImagePreview(data.full_path || "");
 
-      // Automatically fetch the image and convert to File
+     //Automatically fetch the image and convert to File
       // if (data.full_path) {
       //   fetchImageFromUrl(data.full_path);
       // }
     }
   }, [data]);
 
-  // Add this function to fetch and convert image to File
-  const fetchImageFromUrl = async (url: string) => {
-    try {
-      const response = await fetch(url);
-      const blob = await response.blob();
+  //Add this function to fetch and convert image to File
+  // const fetchImageFromUrl = async (url: string) => {
+  //   try {
+  //     const response = await fetch(url,{
+  //    headers:{
+  //     Authorization:
+  //     "Bearer 3|aEbpCRb3dEf0gV3YyrmjFpmGdkEyYGxJue9ResHtb33d8a02",
+  //    }
+  //     });
+  //     const blob = await response.blob();
 
-      // Extract filename from URL or use a default name
-      const filename = url.split("/").pop() || "image.jpg";
+  //     // Extract filename from URL or use a default name
+  //     const filename = url.split("/").pop() || "image.jpg";
 
-      // Create a File object from the blob
-      const file = new File([blob], filename, { type: blob.type });
+  //     // Create a File object from the blob
+  //     const file = new File([blob], filename, { type: blob.type });
 
-      // Set the file in state
-      setImageFile(file);
-      // setSelectedFileName(filename);
+  //     // Set the file in state
+  //     setImageFile(file);
+  //     //setSelectedFileName(filename);
 
-      console.log("Image automatically loaded as File object");
-    } catch (err) {
-      console.error("Error automatically fetching image:", err);
-    }
-  };
+  //     console.log("Image automatically loaded as File object");
+  //   } catch (err) {
+  //     console.error("Error automatically fetching image:", err);
+  //   }
+  // };
 
-  console.log(imageFile);
+  //console.log(imageFile);
 
   // Handle image change
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -250,7 +255,7 @@ export default function EditCarousel() {
                     <div className="flex items-center gap-2">
                       <Input
                         id="image"
-                        // ref={fileInputRef}
+                        //ref={fileInputRef}
                         type="file"
                         accept="image/*"
                         onChange={handleImageChange}

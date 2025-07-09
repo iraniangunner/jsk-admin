@@ -110,10 +110,10 @@ export function JobOpportunityTable() {
     isError: citiesError,
   } = getJobCities();
 
-  const handlePageChange = (selectedItem: { selected: number }) => {
-    setPage(selectedItem.selected + 1);
-    setForcePage(undefined);
-  };
+  // const handlePageChange = (selectedItem: { selected: number }) => {
+  //   setPage(selectedItem.selected + 1);
+  //   setForcePage(undefined);
+  // };
 
   const handleDelete = () => {
     if (jobIdToDelete === null) return;
@@ -281,28 +281,28 @@ export function JobOpportunityTable() {
 
   const handleCategoryChange = (value: string) => {
     setCategoryId(value);
-    setPage(1);
-    setForcePage(0);
+    // setPage(1);
+    // setForcePage(0);
   };
 
   const handleCityChange = (value: string) => {
     setCityId(value);
-    setPage(1);
-    setForcePage(0);
+    // setPage(1);
+    // setForcePage(0);
   };
 
   const clearFilters = () => {
     setCategoryId("");
     setCityId("");
-    setPage(1);
-    setForcePage(0);
+    // setPage(1);
+    // setForcePage(0);
   };
 
-  useEffect(() => {
-    if (forcePage !== undefined) {
-      setForcePage(undefined);
-    }
-  }, [forcePage]);
+  // useEffect(() => {
+  //   if (forcePage !== undefined) {
+  //     setForcePage(undefined);
+  //   }
+  // }, [forcePage]);
 
   return (
     <>
@@ -481,33 +481,6 @@ export function JobOpportunityTable() {
                   )}
                 </TableBody>
               </Table>
-            </div>
-            <div className="flex items-center justify-between sm:justify-end py-4">
-              {/* <ReactPaginate
-                previousLabel={<ChevronRightIcon className="h-4 w-4" />}
-                nextLabel={<ChevronLeftIcon className="h-4 w-4" />}
-                breakLabel="..."
-                // pageCount={data?.meta?.last_page || 1}
-                marginPagesDisplayed={2}
-                pageRangeDisplayed={3}
-                onPageChange={handlePageChange}
-                forcePage={forcePage}
-                containerClassName="flex items-center space-x-1 space-x-reverse"
-                pageClassName="hidden sm:flex relative items-center"
-                pageLinkClassName="h-8 w-8 flex items-center justify-center rounded-md border border-input bg-background text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                previousClassName="relative flex items-center"
-                previousLinkClassName="h-8 w-8 flex items-center justify-center rounded-md border border-input bg-background text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                nextClassName="relative flex items-center"
-                nextLinkClassName="h-8 w-8 flex items-center justify-center rounded-md border border-input bg-background text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                breakClassName="hidden sm:flex relative items-center"
-                breakLinkClassName="hidden sm:flex h-8 w-8 flex items-center justify-center rounded-md border border-input bg-background text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                activeClassName="active"
-                activeLinkClassName="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
-                disabledClassName="opacity-50 pointer-events-none"
-              /> */}
-              {/* <div className="sm:hidden text-sm text-center mt-2 self-start">
-                صفحه {page} از {data?.meta?.last_page || 1}
-              </div> */}
             </div>
           </CardContent>
         </Card>

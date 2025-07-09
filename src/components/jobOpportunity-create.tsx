@@ -23,15 +23,12 @@ import { getJobCities } from "@/hooks/use-jobCity";
 import { createJobOpportunity } from "@/hooks/use-jobOpportunity";
 import type { CreateJobOpportunityRequest } from "@/types/job-opportunity-types";
 
-interface JobOpportunityCreateFormProps {
-  onSuccess?: (jobOpportunity: any) => void;
-  onCancel?: () => void;
-}
+// interface JobOpportunityCreateFormProps {
+//   onSuccess?: (jobOpportunity: any) => void;
+//   onCancel?: () => void;
+// }
 
-export default function JobOpportunityCreate({
-  onSuccess,
-  onCancel,
-}: JobOpportunityCreateFormProps) {
+export default function JobOpportunityCreate() {
   const router = useRouter();
 
   // Form state
@@ -168,7 +165,7 @@ export default function JobOpportunityCreate({
       createJobMutation(
         { data },
         {
-          onSuccess: (result) => {
+          onSuccess: () => {
             toast.success("فرصت شغلی با موفقیت ایجاد شد");
 
             // Reset form
@@ -183,15 +180,11 @@ export default function JobOpportunityCreate({
             setEnglishRequirements([""]);
             setEnglishResponsibilities([""]);
 
-            onSuccess?.(result);
+           // onSuccess?.(result);
 
             // Navigate back after successful creation
             setTimeout(() => {
-              if (onCancel) {
-                onCancel();
-              } else {
-                router.back();
-              }
+              router.push("/job-opportunities");
             }, 1500);
           },
           onError: (error) => {
@@ -215,10 +208,10 @@ export default function JobOpportunityCreate({
           <Button
             variant="outline"
             className="cursor-pointer bg-transparent"
-            onClick={() => (onCancel ? onCancel() : router.back())}
+            onClick={() => router.push("/job-opportunities")}
           >
             <ArrowLeft className="ml-2 h-4 w-4" />
-            بازگشت
+            بازگشت به لیست
           </Button>
         </div>
 

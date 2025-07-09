@@ -65,11 +65,6 @@ const sidebarItems: SidebarItemType[] = [
     href: "/projects",
   },
   {
-    title: "مناقصات",
-    icon: HelpCircle,
-    href: "/tenders",
-  },
-  {
     title: "شهرهای متقاضی مشاغل",
     icon: HelpCircle,
     href: "/job-cities",
@@ -83,6 +78,11 @@ const sidebarItems: SidebarItemType[] = [
     title: "فرصت های شغلی",
     icon: HelpCircle,
     href: "/job-opportunities",
+  },
+  {
+    title: "مناقصات",
+    icon: HelpCircle,
+    href: "/tenders",
   },
 ];
 

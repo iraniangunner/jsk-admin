@@ -104,7 +104,7 @@ export function EditJobCategory() {
             <Button
               variant="outline"
               className="mt-4 bg-transparent"
-              onClick={() => router.push("/job-categoris")}
+              onClick={() => router.push("/job-categories")}
             >
               بازگشت به لیست
             </Button>

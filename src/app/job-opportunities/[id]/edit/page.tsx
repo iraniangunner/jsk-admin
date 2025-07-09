@@ -1,5 +1,4 @@
 import JobOpportunityEdit from "@/components/jobOpportunity-edit";
-import { EditProject } from "@/components/project-edit";
 import QueryProvider from "@/providers/query-provider";
 
 export default function SingleJobOpportunity() {

@@ -1,10 +1,18 @@
 "use client";
 // import { formatDistanceToNow } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useReactToPrint } from "react-to-print";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { ChevronRight, Download, Phone, Smartphone } from "lucide-react";
+import {
+  ChevronRight,
+  Download,
+  Phone,
+  Printer,
+  Smartphone,
+} from "lucide-react";
 import Link from "next/link";
+import { useRef } from "react";
 
 // Format date to a more readable format
 function formatDate(dateString: string) {
@@ -18,11 +26,16 @@ function formatDate(dateString: string) {
   }).format(date);
 }
 
+
+
 export function CooperationDetails({ cooperation }: { cooperation: any }) {
   // Handle file download
   const handleDownload = () => {
     window.open(cooperation.full_path, "_blank");
   };
+
+const contentRef = useRef(null);
+const handlePrint = useReactToPrint({ contentRef });
 
   const submissionDate = formatDate(cooperation.created_at);
 
@@ -31,12 +44,25 @@ export function CooperationDetails({ cooperation }: { cooperation: any }) {
   //     addSuffix: true,
   //   });
 
+  // const handlePrint = () => {
+  //   window.print();
+  // };
+
   return (
     <div className="space-y-6 rtl">
-      <Card>
+      <div className="mb-4 print:hidden">
+        <Button onClick={() => handlePrint()} className="gap-2 cursor-pointer">
+          <Printer className="h-4 w-4" />
+          چاپ
+        </Button>
+      </div>
+      <Card ref={contentRef}>
         <CardHeader className="pb-2">
-          <div className="mb-6 bg-gray-200 rounded-sm">
-            <Link href="/cooperations" className="flex items-center p-2 text-sm">
+          <div className="mb-6 bg-gray-200 rounded-sm" >
+            <Link
+              href="/cooperations"
+              className="flex items-center p-2 text-sm"
+            >
               <ChevronRight className="flex justify-center items-center" />
               <span>بازگشت به همکاری شرکت ها</span>
             </Link>
@@ -107,8 +133,11 @@ export function CooperationDetails({ cooperation }: { cooperation: any }) {
             </div>
             {/* <div>{timeSinceSubmission}</div> */}
           </div>
+         
         </CardContent>
+        
       </Card>
+      
     </div>
   );
 }

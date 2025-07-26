@@ -142,7 +142,7 @@ export function AppSidebar() {
                 className="flex items-center gap-2 text-destructive"
               >
                 <LogOut className="h-4 w-4" />
-                <span>تسجيل الخروج</span>
+                <span>خروج</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>

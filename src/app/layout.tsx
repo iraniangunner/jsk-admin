@@ -66,7 +66,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fa" dir="rtl"  className={`${yekanbakh.variable}`}>
+    <html lang="fa" dir="rtl" className={`${yekanbakh.variable}`}>
       <body className={`antialiased min-h-screen`}>
         <SidebarProvider>
           <AppSidebar />
@@ -75,7 +75,6 @@ export default function RootLayout({
               <SidebarTrigger className="h-9 w-9" />
               {/* <p>منوی پنل</p> */}
             </div>
-
             <div className="w-full lg:w-[90%] mx-auto">{children}</div>
           </main>
         </SidebarProvider>
@@ -83,5 +82,3 @@ export default function RootLayout({
     </html>
   );
 }
-
-

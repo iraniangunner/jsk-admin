@@ -6,15 +6,16 @@ import type {
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
 
-const API_BASE_URL = "https://jsk-co.com/api";
-const AUTH_TOKEN = "Bearer 3|aEbpCRb3dEf0gV3YyrmjFpmGdkEyYGxJue9ResHtb33d8a02";
+//const API_BASE_URL = "https://jsk-co.com/api";
+//const AUTH_TOKEN = "Bearer 3|aEbpCRb3dEf0gV3YyrmjFpmGdkEyYGxJue9ResHtb33d8a02";
 
 export const fetchJobCategories = async (): Promise<JobCategory[]> => {
-  const response = await fetch(`${API_BASE_URL}/job-categories`, {
-    headers: {
-      Authorization: AUTH_TOKEN,
-      "Content-Type": "application/json",
-    },
+  const response = await fetch("/api/proxy/job-categories", {
+    method: "GET",
+    // headers: {
+    //   Authorization: AUTH_TOKEN,
+    //   "Content-Type": "application/json",
+    // },
     cache: "no-store",
   });
 
@@ -28,11 +29,12 @@ export const fetchJobCategories = async (): Promise<JobCategory[]> => {
 export const fetchJobCategoryById = async (
   id: string
 ): Promise<JobCategory> => {
-  const response = await fetch(`${API_BASE_URL}/job-categories/${id}`, {
-    headers: {
-      Authorization: AUTH_TOKEN,
-      "Content-Type": "application/json",
-    },
+  const response = await fetch(`/api/proxy/job-categories/${id}`, {
+    method: "GET",
+    // headers: {
+    //   Authorization: AUTH_TOKEN,
+    //   "Content-Type": "application/json",
+    // },
     cache: "no-store",
   });
 
@@ -44,12 +46,12 @@ export const fetchJobCategoryById = async (
 };
 
 export const deleteJobCategoryById = async (id: number): Promise<void> => {
-  const response = await fetch(`${API_BASE_URL}/job-categories/${id}`, {
+  const response = await fetch(`/api/proxy/job-categories/${id}`, {
     method: "DELETE",
-    headers: {
-      Authorization: AUTH_TOKEN,
-      "Content-Type": "application/json",
-    },
+    // headers: {
+    //   Authorization: AUTH_TOKEN,
+    //   "Content-Type": "application/json",
+    // },
   });
 
   if (!response.ok) {
@@ -66,12 +68,12 @@ export const updateJobCategoryById = async ({
   id: string;
   data: UpdateJobCategoryRequest;
 }) => {
-  const response = await fetch(`${API_BASE_URL}/job-categories/${id}`, {
+  const response = await fetch(`/api/proxy/job-categories/${id}`, {
     method: "PUT", // or PATCH depending on your API
-    headers: {
-      Authorization: AUTH_TOKEN,
-      "Content-Type": "application/json",
-    },
+    // headers: {
+    //   Authorization: AUTH_TOKEN,
+    //   "Content-Type": "application/json",
+    // },
     body: JSON.stringify(data),
   });
 
@@ -87,12 +89,12 @@ export const createNewJobCategory = async ({
 }: {
   data: CreateJobCategoryRequest;
 }): Promise<JobCategory> => {
-  const response = await fetch(`${API_BASE_URL}/job-categories`, {
+  const response = await fetch("/api/proxy/job-categories", {
     method: "POST",
-    headers: {
-      Authorization: AUTH_TOKEN,
-      "Content-Type": "application/json",
-    },
+    // headers: {
+    //   Authorization: AUTH_TOKEN,
+    //   "Content-Type": "application/json",
+    // },
     body: JSON.stringify(data),
   });
 

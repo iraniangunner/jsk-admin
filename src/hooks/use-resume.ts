@@ -1,11 +1,12 @@
 import { useQueryClient, useMutation } from "@tanstack/react-query";
-
 import {
   ResumeSearchParams,
   Resume,
   PaginatedResumeResponse,
 } from "@/types/resume-types";
 import { useQuery } from "@tanstack/react-query";
+
+//const AUTH_TOKEN = "Bearer 3|aEbpCRb3dEf0gV3YyrmjFpmGdkEyYGxJue9ResHtb33d8a02";
 
 export const fetchResumes = async (
   params: ResumeSearchParams
@@ -23,12 +24,13 @@ export const fetchResumes = async (
   }
 
   const response = await fetch(
-    `https://jsk-co.com/api/resumes?${queryParams.toString()}`,
+    `/api/proxy/resumes?${queryParams.toString()}`,
     {
-      headers: {
-        Authorization:
-          "Bearer 3|aEbpCRb3dEf0gV3YyrmjFpmGdkEyYGxJue9ResHtb33d8a02",
-      },
+      method:"GET",
+      // headers: {
+      //   Authorization:
+      //   AUTH_TOKEN,
+      // },
       cache: "no-store",
     }
   );
@@ -41,12 +43,12 @@ export const fetchResumes = async (
 };
 
 export const deleteResumeById = async (id: number): Promise<void> => {
-  const response = await fetch(`https://jsk-co.com/api/resumes/${id}`, {
+  const response = await fetch(`/api/proxy/resumes/${id}`, {
     method: "DELETE",
-    headers: {
-      Authorization:
-        "Bearer 3|aEbpCRb3dEf0gV3YyrmjFpmGdkEyYGxJue9ResHtb33d8a02",
-    },
+    // headers: {
+    //   Authorization:
+    //   AUTH_TOKEN,
+    // },
   });
 
   if (!response.ok) {

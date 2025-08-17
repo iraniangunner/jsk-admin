@@ -2,12 +2,17 @@ import { Slide } from "@/types/carousel-types";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
 
+//const AUTH_TOKEN = "Bearer 3|aEbpCRb3dEf0gV3YyrmjFpmGdkEyYGxJue9ResHtb33d8a02";
+
+// 5|qVzNpMFyHLf6yVe3g2nMCKZpBMt96njAy1ifV5khaadb8391
+
 export const fetchSlides = async (): Promise<Slide[] | any> => {
-  const response = await fetch("https://jsk-co.com/api/sliders", {
-    headers: {
-      Authorization:
-        "Bearer 3|aEbpCRb3dEf0gV3YyrmjFpmGdkEyYGxJue9ResHtb33d8a02",
-    },
+  const response = await fetch("/api/proxy/sliders", {
+    method:"GET",
+    // headers: {
+    //   Authorization:
+    //     AUTH_TOKEN,
+    // },
     cache: "no-store",
   });
 
@@ -19,11 +24,12 @@ export const fetchSlides = async (): Promise<Slide[] | any> => {
 };
 
 export const fetchSlideById = async (id: string): Promise<Slide | any> => {
-  const response = await fetch(`https://jsk-co.com/api/sliders/${id}`, {
-    headers: {
-      Authorization:
-        "Bearer 3|aEbpCRb3dEf0gV3YyrmjFpmGdkEyYGxJue9ResHtb33d8a02",
-    },
+  const response = await fetch(`/api/proxy/sliders/${id}`, {
+    method:"GET",
+    // headers: {
+    //   Authorization:
+    //   AUTH_TOKEN,
+    // },
     cache: "no-store",
   });
 
@@ -35,12 +41,12 @@ export const fetchSlideById = async (id: string): Promise<Slide | any> => {
 };
 
 export const deleteSlideById = async (id: number): Promise<void> => {
-  const response = await fetch(`https://jsk-co.com/api/sliders/${id}`, {
+  const response = await fetch(`/api/proxy/sliders/${id}`, {
     method: "DELETE",
-    headers: {
-      Authorization:
-        "Bearer 3|aEbpCRb3dEf0gV3YyrmjFpmGdkEyYGxJue9ResHtb33d8a02",
-    },
+    // headers: {
+    //   Authorization:
+    //   AUTH_TOKEN,
+    // },
   });
 
   if (!response.ok) {
@@ -57,12 +63,12 @@ export const updateSlideById = async ({
   id: string;
   formData: FormData;
 }): Promise<Slide> => {
-  const response = await fetch(`https://jsk-co.com/api/sliders/${id}`, {
+  const response = await fetch(`/api/proxy/sliders/${id}`, {
     method: "POST", // or PUT if your backend accepts PUT with multipart
-    headers: {
-      Authorization:
-        "Bearer 3|aEbpCRb3dEf0gV3YyrmjFpmGdkEyYGxJue9ResHtb33d8a02",
-    },
+    // headers: {
+    //   Authorization:
+    //   AUTH_TOKEN,
+    // },
     body: formData,
   });
 
@@ -78,12 +84,12 @@ export const createNewSlide = async ({
 }: {
   formData: FormData;
 }): Promise<Slide> => {
-  const response = await fetch("https://jsk-co.com/api/sliders", {
+  const response = await fetch("/api/proxy/sliders", {
     method: "POST",
-    headers: {
-      Authorization:
-        "Bearer 3|aEbpCRb3dEf0gV3YyrmjFpmGdkEyYGxJue9ResHtb33d8a02",
-    },
+    // headers: {
+    //   Authorization:
+    //   AUTH_TOKEN,
+    // },
     body: formData,
   });
 

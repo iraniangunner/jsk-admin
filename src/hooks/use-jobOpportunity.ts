@@ -7,8 +7,8 @@ import type {
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
 
-const API_BASE_URL = "https://jsk-co.com/api";
-const AUTH_TOKEN = "Bearer 3|aEbpCRb3dEf0gV3YyrmjFpmGdkEyYGxJue9ResHtb33d8a02";
+//const API_BASE_URL = "https://jsk-co.com/api";
+//const AUTH_TOKEN = "Bearer 3|aEbpCRb3dEf0gV3YyrmjFpmGdkEyYGxJue9ResHtb33d8a02";
 
 export const fetchJobOpportunities = async (
   filters?: JobOpportunityFilters
@@ -27,24 +27,25 @@ export const fetchJobOpportunities = async (
   if (filters?.title_en) {
     searchParams.append("search", filters.title_en);
   }
-//   if (filters?.page) {
-//     searchParams.append("page", filters.page.toString());
-//   }
-//   if (filters?.per_page) {
-//     searchParams.append("per_page", filters.per_page.toString());
-//   }
+  //   if (filters?.page) {
+  //     searchParams.append("page", filters.page.toString());
+  //   }
+  //   if (filters?.per_page) {
+  //     searchParams.append("per_page", filters.per_page.toString());
+  //   }
 
-  const url = `${API_BASE_URL}/job-opportunities${
-    searchParams.toString() ? `?${searchParams.toString()}` : ""
-  }`;
-
-  const response = await fetch(url, {
-    headers: {
-      Authorization: AUTH_TOKEN,
-      "Content-Type": "application/json",
-    },
-    cache: "no-store",
-  });
+  const response = await fetch(
+    `/api/proxy/job-opportunities${
+      searchParams.toString() ? `?${searchParams.toString()}` : ""
+    }`,
+    {
+      // headers: {
+      //   Authorization: AUTH_TOKEN,
+      //   "Content-Type": "application/json",
+      // },
+      cache: "no-store",
+    }
+  );
 
   if (!response.ok) {
     throw new Error("Failed to fetch job opportunities");
@@ -56,11 +57,12 @@ export const fetchJobOpportunities = async (
 export const fetchJobOpportunityById = async (
   id: string
 ): Promise<JobOpportunity> => {
-  const response = await fetch(`${API_BASE_URL}/job-opportunities/${id}`, {
-    headers: {
-      Authorization: AUTH_TOKEN,
-      "Content-Type": "application/json",
-    },
+  const response = await fetch(`/api/proxy/job-opportunities/${id}`, {
+    method:"GET",
+    // headers: {
+    //   Authorization: AUTH_TOKEN,
+    //   "Content-Type": "application/json",
+    // },
     cache: "no-store",
   });
 
@@ -72,12 +74,12 @@ export const fetchJobOpportunityById = async (
 };
 
 export const deleteJobOpportunityById = async (id: number): Promise<void> => {
-  const response = await fetch(`${API_BASE_URL}/job-opportunities/${id}`, {
+  const response = await fetch(`/api/proxy/job-opportunities/${id}`, {
     method: "DELETE",
-    headers: {
-      Authorization: AUTH_TOKEN,
-      "Content-Type": "application/json",
-    },
+    // headers: {
+    //   Authorization: AUTH_TOKEN,
+    //   "Content-Type": "application/json",
+    // },
   });
 
   if (!response.ok) {
@@ -94,12 +96,12 @@ export const updateJobOpportunityById = async ({
   id: string;
   data: UpdateJobOpportunityRequest;
 }) => {
-  const response = await fetch(`${API_BASE_URL}/job-opportunities/${id}`, {
+  const response = await fetch(`/api/proxy/job-opportunities/${id}`, {
     method: "PUT", // or PATCH depending on your API
-    headers: {
-      Authorization: AUTH_TOKEN,
-      "Content-Type": "application/json",
-    },
+    // headers: {
+    //   Authorization: AUTH_TOKEN,
+    //   "Content-Type": "application/json",
+    // },
     body: JSON.stringify(data),
   });
 
@@ -115,12 +117,12 @@ export const createNewJobOpportunity = async ({
 }: {
   data: CreateJobOpportunityRequest;
 }): Promise<JobOpportunity> => {
-  const response = await fetch(`${API_BASE_URL}/job-opportunities`, {
+  const response = await fetch("/api/proxy/job-opportunities", {
     method: "POST",
-    headers: {
-      Authorization: AUTH_TOKEN,
-      "Content-Type": "application/json",
-    },
+    // headers: {
+    //   Authorization: AUTH_TOKEN,
+    //   "Content-Type": "application/json",
+    // },
     body: JSON.stringify(data),
   });
 

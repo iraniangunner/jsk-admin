@@ -2,6 +2,8 @@ import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
 import { CommentSearchParams } from "@/types/comment-types";
 
+//const AUTH_TOKEN = "Bearer 3|aEbpCRb3dEf0gV3YyrmjFpmGdkEyYGxJue9ResHtb33d8a02";
+
 export const fetchComments = async (
   params: CommentSearchParams
 ): Promise<Comment[] | any> => {
@@ -18,12 +20,13 @@ export const fetchComments = async (
   }
 
   const response = await fetch(
-    `https://jsk-co.com/api/comments?${queryParams.toString()}`,
+    `/api/proxy/comments?${queryParams.toString()}`,
     {
-      headers: {
-        Authorization:
-          "Bearer 3|aEbpCRb3dEf0gV3YyrmjFpmGdkEyYGxJue9ResHtb33d8a02",
-      },
+      method:"GET",
+      // headers: {
+      //   Authorization:
+      //   AUTH_TOKEN,
+      // },
       cache: "no-store",
     }
   );
@@ -36,12 +39,12 @@ export const fetchComments = async (
 };
 
 export const deleteCommentById = async (id: number): Promise<void> => {
-  const response = await fetch(`https://jsk-co.com/api/comments/${id}`, {
+  const response = await fetch(`/api/proxy/comments/${id}`, {
     method: "DELETE",
-    headers: {
-      Authorization:
-        "Bearer 3|aEbpCRb3dEf0gV3YyrmjFpmGdkEyYGxJue9ResHtb33d8a02",
-    },
+    // headers: {
+    //   Authorization:
+    //   AUTH_TOKEN,
+    // },
   });
 
   if (!response.ok) {

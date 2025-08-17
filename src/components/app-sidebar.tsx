@@ -25,6 +25,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
+import router, { useRouter } from "next/navigation";
 
 interface SidebarItemType {
   title: string;
@@ -92,6 +93,22 @@ export function AppSidebar() {
     document.documentElement.dir = "rtl";
   }, []);
 
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      const res = await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include", // کوکی JWT را می‌فرستد
+      });
+      const data = await res.json();
+      // بعد از logout → ریدایرکت به صفحه login
+      router.push("/login");
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
+  };
+
   return (
     <Sidebar
       side="right"
@@ -137,13 +154,14 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <a
-                href="/logout"
+              <button
+                // href="/logout"
+                onClick={handleLogout}
                 className="flex items-center gap-2 text-destructive"
               >
                 <LogOut className="h-4 w-4" />
                 <span>خروج</span>
-              </a>
+              </button>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

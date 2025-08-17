@@ -5,6 +5,8 @@ import {
 } from "@/types/project-types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+//const AUTH_TOKEN = "Bearer 3|aEbpCRb3dEf0gV3YyrmjFpmGdkEyYGxJue9ResHtb33d8a02";
+
 export const fetchProjects = async (
   params: ProjectSearchParams
 ): Promise<PaginatedProjectResponse<Project>> => {
@@ -21,12 +23,13 @@ export const fetchProjects = async (
   }
 
   const response = await fetch(
-    `https://jsk-co.com/api/projects?${queryParams.toString()}`,
+    `/api/proxy/projects?${queryParams.toString()}`,
     {
-      headers: {
-        Authorization:
-          "Bearer 3|aEbpCRb3dEf0gV3YyrmjFpmGdkEyYGxJue9ResHtb33d8a02",
-      },
+      method: "GET",
+      // headers: {
+      //   Authorization:
+      //   AUTH_TOKEN,
+      // },
       cache: "no-store",
     }
   );
@@ -39,12 +42,11 @@ export const fetchProjects = async (
 };
 
 export const deleteProjectById = async (id: number): Promise<void> => {
-  const response = await fetch(`https://jsk-co.com/api/projects/${id}`, {
+  const response = await fetch(`/api/proxy/projects/${id}`, {
     method: "DELETE",
-    headers: {
-      Authorization:
-        "Bearer 3|aEbpCRb3dEf0gV3YyrmjFpmGdkEyYGxJue9ResHtb33d8a02",
-    },
+    // headers: {
+    //   Authorization: AUTH_TOKEN,
+    // },
   });
 
   if (!response.ok) {
@@ -55,11 +57,11 @@ export const deleteProjectById = async (id: number): Promise<void> => {
 };
 
 export const fetchProjectById = async (id: string): Promise<Project | any> => {
-  const response = await fetch(`https://jsk-co.com/api/projects/${id}`, {
-    headers: {
-      Authorization:
-        "Bearer 3|aEbpCRb3dEf0gV3YyrmjFpmGdkEyYGxJue9ResHtb33d8a02",
-    },
+  const response = await fetch(`/api/proxy/projects/${id}`, {
+    method:"GET",
+    // headers: {
+    //   Authorization: AUTH_TOKEN,
+    // },
     cache: "no-store",
   });
 
@@ -77,12 +79,11 @@ export const updateProjectById = async ({
   id: string;
   formData: FormData;
 }): Promise<Project> => {
-  const response = await fetch(`https://jsk-co.com/api/projects/${id}`, {
+  const response = await fetch(`/api/proxy/projects/${id}`, {
     method: "POST", // or PUT if your backend accepts PUT with multipart
-    headers: {
-      Authorization:
-        "Bearer 3|aEbpCRb3dEf0gV3YyrmjFpmGdkEyYGxJue9ResHtb33d8a02",
-    },
+    // headers: {
+    //   Authorization: AUTH_TOKEN,
+    // },
     body: formData,
   });
 
@@ -98,12 +99,11 @@ export const createNewProject = async ({
 }: {
   formData: FormData;
 }): Promise<Project> => {
-  const response = await fetch("https://jsk-co.com/api/projects", {
+  const response = await fetch("/api/proxy/projects", {
     method: "POST",
-    headers: {
-      Authorization:
-        "Bearer 3|aEbpCRb3dEf0gV3YyrmjFpmGdkEyYGxJue9ResHtb33d8a02",
-    },
+    // headers: {
+    //   Authorization: AUTH_TOKEN,
+    // },
     body: formData,
   });
 

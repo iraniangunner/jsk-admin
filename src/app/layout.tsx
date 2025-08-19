@@ -68,16 +68,7 @@ export default function RootLayout({
   return (
     <html lang="fa" dir="rtl" className={`${yekanbakh.variable}`}>
       <body className={`antialiased min-h-screen`}>
-        <SidebarProvider>
-          <AppSidebar />
-          <main className="w-full">
-            <div className="flex items-center">
-              <SidebarTrigger className="h-9 w-9" />
-              {/* <p>منوی پنل</p> */}
-            </div>
-            <div className="w-full lg:w-[90%] mx-auto">{children}</div>
-          </main>
-        </SidebarProvider>
+       {children}
       </body>
     </html>
   );

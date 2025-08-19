@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 import router, { useRouter } from "next/navigation";
+import LogoutButton from "./logout-button";
 
 interface SidebarItemType {
   title: string;
@@ -93,21 +94,21 @@ export function AppSidebar() {
     document.documentElement.dir = "rtl";
   }, []);
 
-  const router = useRouter();
+  // const router = useRouter();
 
-  const handleLogout = async () => {
-    try {
-      const res = await fetch("/api/auth/logout", {
-        method: "POST",
-        credentials: "include", // کوکی JWT را می‌فرستد
-      });
-      const data = await res.json();
-      // بعد از logout → ریدایرکت به صفحه login
-      router.push("/login");
-    } catch (err) {
-      console.error("Logout failed:", err);
-    }
-  };
+  // const handleLogout = async () => {
+  //   try {
+  //     const res = await fetch("/api/auth/logout", {
+  //       method: "POST",
+  //       credentials: "include", // کوکی JWT را می‌فرستد
+  //     });
+  //     const data = await res.json();
+  //     // بعد از logout → ریدایرکت به صفحه login
+  //     router.push("/login");
+  //   } catch (err) {
+  //     console.error("Logout failed:", err);
+  //   }
+  // };
 
   return (
     <Sidebar
@@ -154,14 +155,15 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <button
+              {/* <button
                 // href="/logout"
                 onClick={handleLogout}
                 className="flex items-center gap-2 text-destructive"
               >
                 <LogOut className="h-4 w-4" />
                 <span>خروج</span>
-              </button>
+              </button> */}
+              <LogoutButton />
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

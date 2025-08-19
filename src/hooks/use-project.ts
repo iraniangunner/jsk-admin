@@ -5,7 +5,6 @@ import {
 } from "@/types/project-types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-//const AUTH_TOKEN = "Bearer 3|aEbpCRb3dEf0gV3YyrmjFpmGdkEyYGxJue9ResHtb33d8a02";
 
 export const fetchProjects = async (
   params: ProjectSearchParams
@@ -23,13 +22,9 @@ export const fetchProjects = async (
   }
 
   const response = await fetch(
-    `/api/proxy/projects?${queryParams.toString()}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/projects?${queryParams.toString()}`,
     {
       method: "GET",
-      // headers: {
-      //   Authorization:
-      //   AUTH_TOKEN,
-      // },
       cache: "no-store",
     }
   );
@@ -42,7 +37,7 @@ export const fetchProjects = async (
 };
 
 export const deleteProjectById = async (id: number): Promise<void> => {
-  const response = await fetch(`/api/proxy/projects/${id}`, {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${id}`, {
     method: "DELETE",
     // headers: {
     //   Authorization: AUTH_TOKEN,
@@ -57,11 +52,8 @@ export const deleteProjectById = async (id: number): Promise<void> => {
 };
 
 export const fetchProjectById = async (id: string): Promise<Project | any> => {
-  const response = await fetch(`/api/proxy/projects/${id}`, {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${id}`, {
     method:"GET",
-    // headers: {
-    //   Authorization: AUTH_TOKEN,
-    // },
     cache: "no-store",
   });
 
@@ -79,8 +71,8 @@ export const updateProjectById = async ({
   id: string;
   formData: FormData;
 }): Promise<Project> => {
-  const response = await fetch(`/api/proxy/projects/${id}`, {
-    method: "POST", // or PUT if your backend accepts PUT with multipart
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${id}`, {
+    method: "POST",
     // headers: {
     //   Authorization: AUTH_TOKEN,
     // },
@@ -99,7 +91,7 @@ export const createNewProject = async ({
 }: {
   formData: FormData;
 }): Promise<Project> => {
-  const response = await fetch("/api/proxy/projects", {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects`, {
     method: "POST",
     // headers: {
     //   Authorization: AUTH_TOKEN,

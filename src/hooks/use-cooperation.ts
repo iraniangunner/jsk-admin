@@ -7,8 +7,6 @@ import {
 import { useQuery } from "@tanstack/react-query";
 
 
-//const AUTH_TOKEN = "Bearer 3|aEbpCRb3dEf0gV3YyrmjFpmGdkEyYGxJue9ResHtb33d8a02";
-
 export const fetchCooperations = async (
   params: CooperationSearchParams
 ): Promise<PaginatedCooperationResponse<Cooperation>> => {
@@ -25,13 +23,9 @@ export const fetchCooperations = async (
   }
 
   const response = await fetch(
-    `/api/proxy/companies-cooperation?${queryParams.toString()}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/companies-cooperation?${queryParams.toString()}`,
     {
       method:"GET",
-      // headers: {
-      //   Authorization:
-      //   AUTH_TOKEN,
-      // },
       cache: "no-store",
     }
   );
@@ -45,7 +39,7 @@ export const fetchCooperations = async (
 
 export const deleteCooperationById = async (id: number): Promise<void> => {
   const response = await fetch(
-    `/api/proxy/companies-cooperation/${id}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/companies-cooperation/${id}`,
     {
       method: "DELETE",
       // headers: {

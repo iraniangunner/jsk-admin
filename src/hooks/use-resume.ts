@@ -6,7 +6,6 @@ import {
 } from "@/types/resume-types";
 import { useQuery } from "@tanstack/react-query";
 
-//const AUTH_TOKEN = "Bearer 3|aEbpCRb3dEf0gV3YyrmjFpmGdkEyYGxJue9ResHtb33d8a02";
 
 export const fetchResumes = async (
   params: ResumeSearchParams
@@ -24,13 +23,9 @@ export const fetchResumes = async (
   }
 
   const response = await fetch(
-    `/api/proxy/resumes?${queryParams.toString()}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/resumes?${queryParams.toString()}`,
     {
       method:"GET",
-      // headers: {
-      //   Authorization:
-      //   AUTH_TOKEN,
-      // },
       cache: "no-store",
     }
   );
@@ -43,7 +38,7 @@ export const fetchResumes = async (
 };
 
 export const deleteResumeById = async (id: number): Promise<void> => {
-  const response = await fetch(`/api/proxy/resumes/${id}`, {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/resumes/${id}`, {
     method: "DELETE",
     // headers: {
     //   Authorization:

@@ -6,16 +6,10 @@ import type {
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
 
-//const API_BASE_URL = "https://jsk-co.com/api";
-//const AUTH_TOKEN = "Bearer 3|aEbpCRb3dEf0gV3YyrmjFpmGdkEyYGxJue9ResHtb33d8a02";
 
 export const fetchJobCities = async (): Promise<JobCity[]> => {
-  const response = await fetch("/api/proxy/cities", {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cities`, {
     method:"GET",
-    // headers: {
-    //   Authorization: AUTH_TOKEN,
-    //   "Content-Type": "application/json",
-    // },
     cache: "no-store",
   });
 
@@ -27,12 +21,8 @@ export const fetchJobCities = async (): Promise<JobCity[]> => {
 };
 
 export const fetchJobCityById = async (id: string): Promise<JobCity> => {
-  const response = await fetch(`/api/proxy/cities/${id}`, {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cities/${id}`, {
     method:"GET",
-    // headers: {
-    //   Authorization: AUTH_TOKEN,
-    //   "Content-Type": "application/json",
-    // },
     cache: "no-store",
   });
 
@@ -44,7 +34,7 @@ export const fetchJobCityById = async (id: string): Promise<JobCity> => {
 };
 
 export const deleteJobCityById = async (id: number): Promise<void> => {
-  const response = await fetch(`/api/proxy/cities/${id}`, {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cities/${id}`, {
     method: "DELETE",
     // headers: {
     //   Authorization: AUTH_TOKEN,
@@ -66,8 +56,8 @@ export const updateJobCityById = async ({
   id: string;
   data: UpdateJobCityRequest;
 }) => {
-  const response = await fetch(`/api/proxy/cities/${id}`, {
-    method: "PUT", // or PATCH depending on your API
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cities/${id}`, {
+    method: "PUT", 
     // headers: {
     //   Authorization: AUTH_TOKEN,
     //   "Content-Type": "application/json",
@@ -87,7 +77,7 @@ export const createNewJobCity = async ({
 }: {
   data: CreateJobCityRequest;
 }): Promise<JobCity> => {
-  const response = await fetch("/api/proxy/cities", {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cities`, {
     method: "POST",
     // headers: {
     //   Authorization: AUTH_TOKEN,

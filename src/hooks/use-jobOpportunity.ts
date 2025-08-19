@@ -7,8 +7,6 @@ import type {
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
 
-//const API_BASE_URL = "https://jsk-co.com/api";
-//const AUTH_TOKEN = "Bearer 3|aEbpCRb3dEf0gV3YyrmjFpmGdkEyYGxJue9ResHtb33d8a02";
 
 export const fetchJobOpportunities = async (
   filters?: JobOpportunityFilters
@@ -35,14 +33,11 @@ export const fetchJobOpportunities = async (
   //   }
 
   const response = await fetch(
-    `/api/proxy/job-opportunities${
+    `${process.env.NEXT_PUBLIC_API_URL}/job-opportunities${
       searchParams.toString() ? `?${searchParams.toString()}` : ""
     }`,
     {
-      // headers: {
-      //   Authorization: AUTH_TOKEN,
-      //   "Content-Type": "application/json",
-      // },
+      method:"GET",
       cache: "no-store",
     }
   );
@@ -57,12 +52,8 @@ export const fetchJobOpportunities = async (
 export const fetchJobOpportunityById = async (
   id: string
 ): Promise<JobOpportunity> => {
-  const response = await fetch(`/api/proxy/job-opportunities/${id}`, {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/job-opportunities/${id}`, {
     method:"GET",
-    // headers: {
-    //   Authorization: AUTH_TOKEN,
-    //   "Content-Type": "application/json",
-    // },
     cache: "no-store",
   });
 
@@ -74,7 +65,7 @@ export const fetchJobOpportunityById = async (
 };
 
 export const deleteJobOpportunityById = async (id: number): Promise<void> => {
-  const response = await fetch(`/api/proxy/job-opportunities/${id}`, {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/job-opportunities/${id}`, {
     method: "DELETE",
     // headers: {
     //   Authorization: AUTH_TOKEN,
@@ -96,8 +87,8 @@ export const updateJobOpportunityById = async ({
   id: string;
   data: UpdateJobOpportunityRequest;
 }) => {
-  const response = await fetch(`/api/proxy/job-opportunities/${id}`, {
-    method: "PUT", // or PATCH depending on your API
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/job-opportunities/${id}`, {
+    method: "PUT", 
     // headers: {
     //   Authorization: AUTH_TOKEN,
     //   "Content-Type": "application/json",
@@ -117,7 +108,7 @@ export const createNewJobOpportunity = async ({
 }: {
   data: CreateJobOpportunityRequest;
 }): Promise<JobOpportunity> => {
-  const response = await fetch("/api/proxy/job-opportunities", {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/job-opportunities`, {
     method: "POST",
     // headers: {
     //   Authorization: AUTH_TOKEN,

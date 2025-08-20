@@ -22,11 +22,24 @@ export async function middleware(req: NextRequest) {
   const now = Date.now();
 
   // صفحه login
+  // جلوگیری از کش صفحات حساس
+
+  const res = NextResponse.next();
+  if (pathname === "/" || pathname === "/login") {
+    res.headers.set(
+      "Cache-Control",
+      "no-store, no-cache, must-revalidate, proxy-revalidate"
+    );
+    res.headers.set("Pragma", "no-cache");
+    res.headers.set("Expires", "0");
+  }
+
+  // صفحه login
   if (pathname === "/login") {
     if (access && expStr && Number(expStr) > now) {
       return NextResponse.redirect(new URL("/", req.url));
     }
-    return NextResponse.next();
+    return res;
   }
 
   // اگر access token موجود نیست یا منقضی شده

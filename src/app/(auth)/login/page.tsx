@@ -39,7 +39,7 @@ export default function LoginPage() {
           <label className="text-sm font-medium">نام کاربری</label>
           <Input
             type="email"
-            {...register("email", { required: "Email is required" })}
+            {...register("email", { required: "نام کاربری را وارد کنید" })}
           />
           {errors.email && (
             <p className="text-xs text-red-500">{errors.email.message}</p>
@@ -50,7 +50,7 @@ export default function LoginPage() {
           <label className="text-sm font-medium">رمز عبور</label>
           <Input
             type="password"
-            {...register("password", { required: "Password is required" })}
+            {...register("password", { required: "رمز عبور را وارد کنید" })}
           />
           {errors.password && (
             <p className="text-xs text-red-500">{errors.password.message}</p>

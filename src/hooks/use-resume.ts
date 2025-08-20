@@ -5,7 +5,7 @@ import {
   PaginatedResumeResponse,
 } from "@/types/resume-types";
 import { useQuery } from "@tanstack/react-query";
-
+import { fetchWithAuth } from "@/lib/fetchWithAuth";
 
 export const fetchResumes = async (
   params: ResumeSearchParams
@@ -25,7 +25,7 @@ export const fetchResumes = async (
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/resumes?${queryParams.toString()}`,
     {
-      method:"GET",
+      method: "GET",
       cache: "no-store",
     }
   );
@@ -38,19 +38,12 @@ export const fetchResumes = async (
 };
 
 export const deleteResumeById = async (id: number): Promise<void> => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/resumes/${id}`, {
-    method: "DELETE",
-    // headers: {
-    //   Authorization:
-    //   AUTH_TOKEN,
-    // },
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to delete resume");
-  }
-
-  return;
+  return await fetchWithAuth(
+    `${process.env.NEXT_PUBLIC_API_URL}/resumes/${id}`,
+    {
+      method: "DELETE",
+    }
+  );
 };
 
 export const getResumes = (params: ResumeSearchParams) => {

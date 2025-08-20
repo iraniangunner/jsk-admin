@@ -1,3 +1,4 @@
+import { fetchWithAuth } from "@/lib/fetchWithAuth";
 import type {
   CreateJobCategoryRequest,
   JobCategory,
@@ -6,12 +7,14 @@ import type {
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
 
-
 export const fetchJobCategories = async (): Promise<JobCategory[]> => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/job-categories`, {
-    method: "GET",
-    cache: "no-store",
-  });
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/job-categories`,
+    {
+      method: "GET",
+      cache: "no-store",
+    }
+  );
 
   if (!response.ok) {
     throw new Error("Failed to fetch job categories");
@@ -23,10 +26,13 @@ export const fetchJobCategories = async (): Promise<JobCategory[]> => {
 export const fetchJobCategoryById = async (
   id: string
 ): Promise<JobCategory> => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/job-categories/${id}`, {
-    method: "GET",
-    cache: "no-store",
-  });
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/job-categories/${id}`,
+    {
+      method: "GET",
+      cache: "no-store",
+    }
+  );
 
   if (!response.ok) {
     throw new Error("Failed to fetch job category");
@@ -36,19 +42,12 @@ export const fetchJobCategoryById = async (
 };
 
 export const deleteJobCategoryById = async (id: number): Promise<void> => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/job-categories/${id}`, {
-    method: "DELETE",
-    // headers: {
-    //   Authorization: AUTH_TOKEN,
-    //   "Content-Type": "application/json",
-    // },
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to delete job category");
-  }
-
-  return;
+  return await fetchWithAuth(
+    `${process.env.NEXT_PUBLIC_API_URL}/job-categories/${id}`,
+    {
+      method: "DELETE",
+    }
+  );
 };
 
 export const updateJobCategoryById = async ({
@@ -58,20 +57,13 @@ export const updateJobCategoryById = async ({
   id: string;
   data: UpdateJobCategoryRequest;
 }) => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/job-categories/${id}`, {
-    method: "PUT", 
-    // headers: {
-    //   Authorization: AUTH_TOKEN,
-    //   "Content-Type": "application/json",
-    // },
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to update job category");
-  }
-
-  return;
+  return await fetchWithAuth(
+    `${process.env.NEXT_PUBLIC_API_URL}/job-categories/${id}`,
+    {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }
+  );
 };
 
 export const createNewJobCategory = async ({
@@ -79,20 +71,13 @@ export const createNewJobCategory = async ({
 }: {
   data: CreateJobCategoryRequest;
 }): Promise<JobCategory> => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/job-categories`, {
-    method: "POST",
-    // headers: {
-    //   Authorization: AUTH_TOKEN,
-    //   "Content-Type": "application/json",
-    // },
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to create job category");
-  }
-
-  return response.json();
+  return await fetchWithAuth(
+    `${process.env.NEXT_PUBLIC_API_URL}/job-categories`,
+    {
+      method: "POST",
+      body: JSON.stringify(data),
+    }
+  );
 };
 
 // React Query Hooks

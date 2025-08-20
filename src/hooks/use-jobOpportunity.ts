@@ -1,3 +1,4 @@
+import { fetchWithAuth } from "@/lib/fetchWithAuth";
 import type {
   CreateJobOpportunityRequest,
   JobOpportunity,
@@ -6,7 +7,6 @@ import type {
 } from "@/types/job-opportunity-types";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
-
 
 export const fetchJobOpportunities = async (
   filters?: JobOpportunityFilters
@@ -25,19 +25,13 @@ export const fetchJobOpportunities = async (
   if (filters?.title_en) {
     searchParams.append("search", filters.title_en);
   }
-  //   if (filters?.page) {
-  //     searchParams.append("page", filters.page.toString());
-  //   }
-  //   if (filters?.per_page) {
-  //     searchParams.append("per_page", filters.per_page.toString());
-  //   }
 
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/job-opportunities${
       searchParams.toString() ? `?${searchParams.toString()}` : ""
     }`,
     {
-      method:"GET",
+      method: "GET",
       cache: "no-store",
     }
   );
@@ -52,10 +46,13 @@ export const fetchJobOpportunities = async (
 export const fetchJobOpportunityById = async (
   id: string
 ): Promise<JobOpportunity> => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/job-opportunities/${id}`, {
-    method:"GET",
-    cache: "no-store",
-  });
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/job-opportunities/${id}`,
+    {
+      method: "GET",
+      cache: "no-store",
+    }
+  );
 
   if (!response.ok) {
     throw new Error("Failed to fetch job opportunity");
@@ -65,19 +62,12 @@ export const fetchJobOpportunityById = async (
 };
 
 export const deleteJobOpportunityById = async (id: number): Promise<void> => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/job-opportunities/${id}`, {
-    method: "DELETE",
-    // headers: {
-    //   Authorization: AUTH_TOKEN,
-    //   "Content-Type": "application/json",
-    // },
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to delete job opportunity");
-  }
-
-  return;
+  return await fetchWithAuth(
+    `${process.env.NEXT_PUBLIC_API_URL}/job-opportunities/${id}`,
+    {
+      method: "DELETE",
+    }
+  );
 };
 
 export const updateJobOpportunityById = async ({
@@ -87,20 +77,13 @@ export const updateJobOpportunityById = async ({
   id: string;
   data: UpdateJobOpportunityRequest;
 }) => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/job-opportunities/${id}`, {
-    method: "PUT", 
-    // headers: {
-    //   Authorization: AUTH_TOKEN,
-    //   "Content-Type": "application/json",
-    // },
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to update job opportunity");
-  }
-
-  return;
+  return await fetchWithAuth(
+    `${process.env.NEXT_PUBLIC_API_URL}/job-opportunities/${id}`,
+    {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }
+  );
 };
 
 export const createNewJobOpportunity = async ({
@@ -108,20 +91,13 @@ export const createNewJobOpportunity = async ({
 }: {
   data: CreateJobOpportunityRequest;
 }): Promise<JobOpportunity> => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/job-opportunities`, {
-    method: "POST",
-    // headers: {
-    //   Authorization: AUTH_TOKEN,
-    //   "Content-Type": "application/json",
-    // },
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to create job opportunity");
-  }
-
-  return response.json();
+  return await fetchWithAuth(
+    `${process.env.NEXT_PUBLIC_API_URL}/job-opportunities`,
+    {
+      method: "POST",
+      body: JSON.stringify(data),
+    }
+  );
 };
 
 // React Query Hooks

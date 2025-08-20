@@ -2,18 +2,19 @@
 
 import { useTransition } from "react";
 import { logoutAction } from "@/app/_actions/logout-action";
+import { useRouter } from "next/navigation";
+import { LogOut } from "lucide-react";
 
 export default function LogoutButton() {
   const [isPending, startTransition] = useTransition();
 
+  const router = useRouter();
+
   const handleLogout = () => {
     startTransition(async () => {
-      try {
-        await logoutAction();
-        // بعد از لاگ‌اوت، هدایت بدون رفرش کامل
-        window.location.href = "/login";
-      } catch (err) {
-        console.error("Logout failed", err);
+      const result = await logoutAction();
+      if (result.isSuccess) {
+        router.push("/login");
       }
     });
   };
@@ -22,9 +23,10 @@ export default function LogoutButton() {
     <button
       onClick={handleLogout}
       disabled={isPending}
-      className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50"
+      className="flex items-center gap-2 text-destructive py-4 px-8 bg-gray-400 rounded-2xl my-10 cursor-pointer"
     >
-      {isPending ? "Logging out..." : "Logout"}
+      <LogOut className="h-4 w-4" />
+      <span>{isPending ? "در حال خروج ..." : "خروج"}</span>
     </button>
   );
 }

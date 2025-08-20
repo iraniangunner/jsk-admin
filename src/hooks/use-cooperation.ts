@@ -5,7 +5,7 @@ import {
   PaginatedCooperationResponse,
 } from "@/types/cooperation-types";
 import { useQuery } from "@tanstack/react-query";
-
+import { fetchWithAuth } from "@/lib/fetchWithAuth";
 
 export const fetchCooperations = async (
   params: CooperationSearchParams
@@ -23,9 +23,11 @@ export const fetchCooperations = async (
   }
 
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/companies-cooperation?${queryParams.toString()}`,
+    `${
+      process.env.NEXT_PUBLIC_API_URL
+    }/companies-cooperation?${queryParams.toString()}`,
     {
-      method:"GET",
+      method: "GET",
       cache: "no-store",
     }
   );
@@ -38,22 +40,12 @@ export const fetchCooperations = async (
 };
 
 export const deleteCooperationById = async (id: number): Promise<void> => {
-  const response = await fetch(
+  return await fetchWithAuth(
     `${process.env.NEXT_PUBLIC_API_URL}/companies-cooperation/${id}`,
     {
       method: "DELETE",
-      // headers: {
-      //   Authorization:
-      //   AUTH_TOKEN,
-      // },
     }
   );
-
-  if (!response.ok) {
-    throw new Error("Failed to delete cooperation");
-  }
-
-  return;
 };
 
 export const getCooperations = (params: CooperationSearchParams) => {

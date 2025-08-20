@@ -9,23 +9,24 @@ export async function logoutAction() {
   const accessToken = c.get("access_token")?.value;
 
   try {
-    await fetch(`${API_URL}/logout`, {
+    const res = await fetch(`${API_URL}/logout`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}), // 👈 هدر اضافه شد
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       },
-      cache: "no-store",
-      credentials: "include", // اگه refresh_token تو کوکی داری
     });
+
+    if (res.ok) {
+      c.delete("access_token");
+      c.delete("refresh_token");
+      c.delete("expires_at");
+      return { isSuccess: true };
+    }
+    return { isSuccess: false };
   } catch (err) {
-    console.error("Failed to call backend logout:", err);
+    console.error("Logout failed:", err);
+    return { isSuccess: false };
   }
-
-  // پاک کردن کوکی‌ها (حتی اگر درخواست fail بشه)
-  c.delete("access_token");
-  c.delete("refresh_token");
-  c.delete("expires_at");
-
-  return { ok: true };
 }
+

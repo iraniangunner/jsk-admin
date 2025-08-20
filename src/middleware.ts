@@ -1,80 +1,55 @@
-// middleware.ts
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from "next/server";
+import { refreshAccessToken } from "./app/_actions/login-action";
 
-const isProd = process.env.NODE_ENV === 'production';
+const THRESHOLD_MS = 5 * 60 * 1000; // ۵ دقیقه قبل از انقضا
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // فقط login بدون توکن باز باشه
-  if (pathname === '/login') {
+  // اجازه دسترسی به فایل‌های استاتیک و API
+  if (
+    pathname.startsWith("/api") ||
+    pathname.startsWith("/_next/static") ||
+    pathname.startsWith("/_next/image") ||
+    pathname === "/favicon.ico"
+  ) {
     return NextResponse.next();
   }
 
-  const access = req.cookies.get('access_token')?.value;
-  const expStr = req.cookies.get('expires_at')?.value;
+  const access = req.cookies.get("access_token")?.value;
+  const refresh = req.cookies.get("refresh_token")?.value;
+  const expStr = req.cookies.get("expires_at")?.value;
+  const now = Date.now();
 
-  // اگر توکن وجود ندارد → هدایت به login
-  if (!access || !expStr) {
-    const loginUrl = new URL('/login', req.url);
-    loginUrl.searchParams.set('next', pathname);
+  // صفحه login
+  if (pathname === "/login") {
+    if (access && expStr && Number(expStr) > now) {
+      return NextResponse.redirect(new URL("/", req.url));
+    }
+    return NextResponse.next();
+  }
+
+  // اگر access token موجود نیست یا منقضی شده
+  if (!access || !expStr || Number(expStr) <= now) {
+    if (refresh) {
+      const newToken = await refreshAccessToken(refresh);
+      if (newToken) return NextResponse.next(); // refresh موفق
+    }
+
+    const loginUrl = new URL("/login", req.url);
+    loginUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  const now = Date.now();
-  const exp = Number(expStr || 0);
-  const thresholdMs = 60_000; // 1 دقیقه مانده به انقضا
-
-  if (Number.isFinite(exp) && now >= exp - thresholdMs) {
-    // نزدیک انقضا → درخواست refresh داخلی
-    try {
-      const refreshRes = await fetch(new URL('/api/auth/refresh', req.url).toString(), {
-        method: 'GET',
-        headers: { cookie: req.headers.get('cookie') || '' },
-      });
-
-      if (refreshRes.ok) {
-        const { access_token, expires_at } = (await refreshRes.json()) as {
-          access_token: string;
-          expires_at: number;
-        };
-
-        const res = NextResponse.next();
-        res.cookies.set('access_token', access_token, {
-          httpOnly: true,
-          sameSite: 'lax',
-          // secure: isProd,
-          path: '/',
-          maxAge: 60 * 60,
-        });
-        res.cookies.set('expires_at', String(expires_at), {
-          httpOnly: true,
-          sameSite: 'lax',
-          // secure: isProd,
-          path: '/',
-          maxAge: 60 * 60,
-        });
-        return res;
-      } else {
-        // رفرش نشد → هدایت به login
-        const loginUrl = new URL('/login', req.url);
-        loginUrl.searchParams.set('next', pathname);
-        return NextResponse.redirect(loginUrl);
-      }
-    } catch (err) {
-      console.error('Token refresh failed:', err);
-      const loginUrl = new URL('/login', req.url);
-      loginUrl.searchParams.set('next', pathname);
-      return NextResponse.redirect(loginUrl);
-    }
+  // نزدیک انقضا → refresh خودکار
+  if (Number(expStr) - now <= THRESHOLD_MS && refresh) {
+    const newToken = await refreshAccessToken(refresh);
+    if (newToken) return NextResponse.next();
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: [
-    // همه مسیرها به جز API و _next/static/image و favicon.ico
-    "/((?!api|_next/static|_next/image|favicon.ico).*)",
-  ],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };

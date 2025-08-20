@@ -1,10 +1,10 @@
+import { fetchWithAuth } from "@/lib/fetchWithAuth";
 import {
   PaginatedProjectResponse,
   Project,
   ProjectSearchParams,
 } from "@/types/project-types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-
 
 export const fetchProjects = async (
   params: ProjectSearchParams
@@ -36,32 +36,31 @@ export const fetchProjects = async (
   return response.json();
 };
 
-export const deleteProjectById = async (id: number): Promise<void> => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${id}`, {
-    method: "DELETE",
-    // headers: {
-    //   Authorization: AUTH_TOKEN,
-    // },
-  });
 
-  if (!response.ok) {
-    throw new Error("Failed to delete Project");
-  }
-
-  return;
-};
 
 export const fetchProjectById = async (id: string): Promise<Project | any> => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${id}`, {
-    method:"GET",
-    cache: "no-store",
-  });
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/projects/${id}`,
+    {
+      method: "GET",
+      cache: "no-store",
+    }
+  );
 
   if (!response.ok) {
     throw new Error("Failed to fetch project");
   }
 
   return response.json();
+};
+
+export const deleteProjectById = async (id: number): Promise<void> => {
+  return await fetchWithAuth(
+    `${process.env.NEXT_PUBLIC_API_URL}/projects/${id}`,
+    {
+      method: "DELETE",
+    }
+  );
 };
 
 export const updateProjectById = async ({
@@ -71,19 +70,13 @@ export const updateProjectById = async ({
   id: string;
   formData: FormData;
 }): Promise<Project> => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${id}`, {
-    method: "POST",
-    // headers: {
-    //   Authorization: AUTH_TOKEN,
-    // },
-    body: formData,
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to update project");
-  }
-
-  return response.json();
+  return await fetchWithAuth(
+    `${process.env.NEXT_PUBLIC_API_URL}/projects/${id}`,
+    {
+      method: "POST",
+      body: formData,
+    }
+  );
 };
 
 export const createNewProject = async ({
@@ -91,19 +84,10 @@ export const createNewProject = async ({
 }: {
   formData: FormData;
 }): Promise<Project> => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects`, {
+  return await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/projects`, {
     method: "POST",
-    // headers: {
-    //   Authorization: AUTH_TOKEN,
-    // },
     body: formData,
   });
-
-  if (!response.ok) {
-    throw new Error("Failed to create project");
-  }
-
-  return response.json();
 };
 
 export const getProjectById = (id: string) => {

@@ -1,3 +1,4 @@
+import { fetchWithAuth } from "@/lib/fetchWithAuth";
 import type {
   CreateJobCityRequest,
   JobCity,
@@ -6,10 +7,9 @@ import type {
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
 
-
 export const fetchJobCities = async (): Promise<JobCity[]> => {
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cities`, {
-    method:"GET",
+    method: "GET",
     cache: "no-store",
   });
 
@@ -21,10 +21,13 @@ export const fetchJobCities = async (): Promise<JobCity[]> => {
 };
 
 export const fetchJobCityById = async (id: string): Promise<JobCity> => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cities/${id}`, {
-    method:"GET",
-    cache: "no-store",
-  });
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/cities/${id}`,
+    {
+      method: "GET",
+      cache: "no-store",
+    }
+  );
 
   if (!response.ok) {
     throw new Error("Failed to fetch job city");
@@ -34,19 +37,12 @@ export const fetchJobCityById = async (id: string): Promise<JobCity> => {
 };
 
 export const deleteJobCityById = async (id: number): Promise<void> => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cities/${id}`, {
-    method: "DELETE",
-    // headers: {
-    //   Authorization: AUTH_TOKEN,
-    //   "Content-Type": "application/json",
-    // },
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to delete job city");
-  }
-
-  return;
+  return await fetchWithAuth(
+    `${process.env.NEXT_PUBLIC_API_URL}/cities/${id}`,
+    {
+      method: "DELETE",
+    }
+  );
 };
 
 export const updateJobCityById = async ({
@@ -56,20 +52,13 @@ export const updateJobCityById = async ({
   id: string;
   data: UpdateJobCityRequest;
 }) => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cities/${id}`, {
-    method: "PUT", 
-    // headers: {
-    //   Authorization: AUTH_TOKEN,
-    //   "Content-Type": "application/json",
-    // },
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to update job city");
-  }
-
-  return;
+  return await fetchWithAuth(
+    `${process.env.NEXT_PUBLIC_API_URL}/cities/${id}`,
+    {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }
+  );
 };
 
 export const createNewJobCity = async ({
@@ -77,20 +66,10 @@ export const createNewJobCity = async ({
 }: {
   data: CreateJobCityRequest;
 }): Promise<JobCity> => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cities`, {
+  return await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/cities`, {
     method: "POST",
-    // headers: {
-    //   Authorization: AUTH_TOKEN,
-    //   "Content-Type": "application/json",
-    // },
     body: JSON.stringify(data),
   });
-
-  if (!response.ok) {
-    throw new Error("Failed to create job city");
-  }
-
-  return response.json();
 };
 
 // React Query Hooks

@@ -3,12 +3,9 @@
 import { cookies } from "next/headers";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
-
-// const isProd = process.env.NODE_ENV === 'production';
 const cookieBase = {
   httpOnly: true,
   sameSite: "lax" as const,
-  //   secure: isProd,
   path: "/",
 };
 
@@ -16,41 +13,58 @@ type LoginInput = { email: string; password: string };
 type LoginResp = {
   access_token: string;
   refresh_token: string;
-  expires_at: number;
+  expires_in: number; // ثانیه
 };
 
 export async function loginAction(input: LoginInput) {
-  const res = await fetch(`${API_URL}/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input),
-    cache: "no-store",
-  });
+  try {
+    const res = await fetch(`${API_URL}/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    });
 
-  if (!res.ok) {
-    let msg = "Login failed";
-    try {
-      const j = await res.json();
-      msg = j?.message ?? msg;
-    } catch {}
-    throw new Error(msg);
+    if (!res.ok) {
+      return { isSuccess: false, error: "Invalid credentials" };
+    }
+
+    const data = (await res.json()) as LoginResp;
+    const c = await cookies();
+
+    const expiresAt = Date.now() + data.expires_in * 1000;
+
+    // ست کردن کوکی‌ها
+    c.set("access_token", data.access_token, { ...cookieBase, maxAge: data.expires_in });
+    c.set("refresh_token", data.refresh_token, { ...cookieBase, maxAge: 7 * 24 * 60 * 60 });
+    c.set("expires_at", String(expiresAt), { ...cookieBase, maxAge: data.expires_in });
+
+    return { isSuccess: true, error: "Login successful" };
+  } catch (error) {
+    return { isSuccess: false, error: "Login failed" };
   }
+}
 
-  const data = (await res.json()) as LoginResp;
-  const c = await cookies();
+// تابع کمکی refresh token
+export async function refreshAccessToken(refreshToken: string) {
+  try {
+    const res = await fetch(`${API_URL}/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
 
-  // 1 ساعت
-  c.set("access_token", data.access_token, { ...cookieBase, maxAge: 60 * 60 });
-  // 7 روز
-  c.set("refresh_token", data.refresh_token, {
-    ...cookieBase,
-    maxAge: 7 * 24 * 60 * 60,
-  });
-  // timestamp انقضا (ms)
-  c.set("expires_at", String(data.expires_at), {
-    ...cookieBase,
-    maxAge: 60 * 60,
-  });
+    if (!res.ok) return null;
 
-  return { ok: true };
+    const data: LoginResp = await res.json();
+    const c = await cookies();
+    const expiresAt = Date.now() + data.expires_in * 1000;
+
+    c.set("access_token", data.access_token, { ...cookieBase, maxAge: data.expires_in });
+    c.set("expires_at", String(expiresAt), { ...cookieBase, maxAge: data.expires_in });
+
+    return data.access_token;
+  } catch (err) {
+    console.error("Refresh failed:", err);
+    return null;
+  }
 }

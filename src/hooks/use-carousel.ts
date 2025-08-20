@@ -1,11 +1,11 @@
+import { fetchWithAuth } from "@/lib/fetchWithAuth";
 import { Slide } from "@/types/carousel-types";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
 
-
 export const fetchSlides = async (): Promise<Slide[] | any> => {
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sliders`, {
-    method:"GET",
+    method: "GET",
     cache: "no-store",
   });
 
@@ -17,10 +17,13 @@ export const fetchSlides = async (): Promise<Slide[] | any> => {
 };
 
 export const fetchSlideById = async (id: string): Promise<Slide | any> => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sliders/${id}`, {
-    method:"GET",
-    cache: "no-store",
-  });
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/sliders/${id}`,
+    {
+      method: "GET",
+      cache: "no-store",
+    }
+  );
 
   if (!response.ok) {
     throw new Error("Failed to fetch slide");
@@ -30,19 +33,12 @@ export const fetchSlideById = async (id: string): Promise<Slide | any> => {
 };
 
 export const deleteSlideById = async (id: number): Promise<void> => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sliders/${id}`, {
-    method: "DELETE",
-    // headers: {
-    //   Authorization:
-    //   AUTH_TOKEN,
-    // },
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to delete slide");
-  }
-
-  return;
+  return await fetchWithAuth(
+    `${process.env.NEXT_PUBLIC_API_URL}/sliders/${id}`,
+    {
+      method: "DELETE",
+    }
+  );
 };
 
 export const updateSlideById = async ({
@@ -52,20 +48,13 @@ export const updateSlideById = async ({
   id: string;
   formData: FormData;
 }): Promise<Slide> => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sliders/${id}`, {
-    method: "POST",
-    // headers: {
-    //   Authorization:
-    //   AUTH_TOKEN,
-    // },
-    body: formData,
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to update slide");
-  }
-
-  return response.json();
+  return await fetchWithAuth(
+    `${process.env.NEXT_PUBLIC_API_URL}/sliders/${id}`,
+    {
+      method: "POST",
+      body: formData,
+    }
+  );
 };
 
 export const createNewSlide = async ({
@@ -73,20 +62,10 @@ export const createNewSlide = async ({
 }: {
   formData: FormData;
 }): Promise<Slide> => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sliders`, {
+  return await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/sliders`, {
     method: "POST",
-    // headers: {
-    //   Authorization:
-    //   AUTH_TOKEN,
-    // },
     body: formData,
   });
-
-  if (!response.ok) {
-    throw new Error("Failed to create slide");
-  }
-
-  return response.json();
 };
 
 export const getSlides = () => {

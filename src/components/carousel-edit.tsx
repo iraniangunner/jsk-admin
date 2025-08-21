@@ -1,6 +1,6 @@
 "use client";
 import type React from "react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect} from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Loader2, ArrowLeft, ImageIcon } from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
@@ -24,7 +24,6 @@ export default function EditCarousel() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
-  // const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form state
   const [text, setText] = useState("");
@@ -35,7 +34,7 @@ export default function EditCarousel() {
   const [selectedFileName, setSelectedFileName] = useState<string>(
     "هیچ فایلی انتخاب نشده است"
   );
-  // const [serverImageUrl, setServerImageUrl] = useState<string | null>(null);
+
   const [error, setError] = useState<string | null>(null);
 
   // Fetch slide data
@@ -51,42 +50,8 @@ export default function EditCarousel() {
       setTextEn(data.text_en || "");
       setLinkAttachment(data.link || "");
       setImagePreview(data.full_path || "");
-
-     //Automatically fetch the image and convert to File
-      // if (data.full_path) {
-      //   fetchImageFromUrl(data.full_path);
-      // }
     }
   }, [data]);
-
-  //Add this function to fetch and convert image to File
-  // const fetchImageFromUrl = async (url: string) => {
-  //   try {
-  //     const response = await fetch(url,{
-  //    headers:{
-  //     Authorization:
-  //     "Bearer 3|aEbpCRb3dEf0gV3YyrmjFpmGdkEyYGxJue9ResHtb33d8a02",
-  //    }
-  //     });
-  //     const blob = await response.blob();
-
-  //     // Extract filename from URL or use a default name
-  //     const filename = url.split("/").pop() || "image.jpg";
-
-  //     // Create a File object from the blob
-  //     const file = new File([blob], filename, { type: blob.type });
-
-  //     // Set the file in state
-  //     setImageFile(file);
-  //     //setSelectedFileName(filename);
-
-  //     console.log("Image automatically loaded as File object");
-  //   } catch (err) {
-  //     console.error("Error automatically fetching image:", err);
-  //   }
-  // };
-
-  //console.log(imageFile);
 
   // Handle image change
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {

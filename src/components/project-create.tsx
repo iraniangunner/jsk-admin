@@ -44,22 +44,22 @@ const generateId = () => Math.random().toString(36).substring(2, 9);
 
 export function ProjectCreate() {
   const router = useRouter();
-  const [projectFormData, setProjectFormData] =
-    useState<ProjectFormData>({
-      title: "",
-      title_en: "",
-      employer: "",
-      employer_en: "",
-      start_date: "",
-      location: "",
-      location_en: "",
-      text: "",
-      text_en: "",
-    });
+  const [projectFormData, setProjectFormData] = useState<ProjectFormData>({
+    title: "",
+    title_en: "",
+    employer: "",
+    employer_en: "",
+    start_date: "",
+    location: "",
+    location_en: "",
+    text: "",
+    text_en: "",
+  });
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
   const [imageItems, setImageItems] = useState<ImageItem[]>([]);
+  const [previewFile, setPreviewFile] = useState<File | null>(null);
 
   // Update mutation
   const { mutate: createProjectMutation, isPending: isSaving } =
@@ -130,6 +130,20 @@ export function ProjectCreate() {
     setVideoPreview(null);
   };
 
+  const onChangePreviewImage = (file?: File) => {
+    if (previewFile && (previewFile as any).__tmpUrl) {
+      URL.revokeObjectURL((previewFile as any).__tmpUrl);
+    }
+    if (file) {
+      // برای نمایش سریع می‌توانیم یک URL موقت تولید کنیم:
+      const tmpUrl = URL.createObjectURL(file);
+      (file as any).__tmpUrl = tmpUrl;
+      setPreviewFile(file);
+    } else {
+      setPreviewFile(null);
+    }
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
@@ -161,6 +175,12 @@ export function ProjectCreate() {
       // Add video if exists
       if (videoFile) {
         formData.append("video", videoFile);
+      }
+
+      // Add preview if exists
+
+      if(previewFile){
+        formData.append("preview_image", previewFile);
       }
 
       // Add images
@@ -376,6 +396,50 @@ export function ProjectCreate() {
                   value={projectFormData.text_en}
                   onChange={handleInputChange}
                 />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>تصویر کاور (Preview)</Label>
+              <div className="flex flex-wrap items-start gap-4">
+                {/* جدید */}
+                {!previewFile && (
+                  <label className="flex flex-col items-center justify-center w-60 h-40 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/70">
+                    <div className="flex flex-col items-center">
+                      <Upload className="w-6 h-6 mb-2 opacity-70" />
+                      <span className="text-sm">برای آپلود کلیک کنید</span>
+                    </div>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) =>
+                        onChangePreviewImage(e.target.files?.[0] || undefined)
+                      }
+                    />
+                  </label>
+                )}
+
+                {/* پیش‌نمایش فایل جدید */}
+                {previewFile && (
+                  <div className="relative">
+                    <img
+                      src={(previewFile as any).__tmpUrl}
+                      alt="new-preview"
+                      className="w-40 h-40 object-cover rounded-lg border"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute top-2 right-2"
+                      onClick={() => onChangePreviewImage(undefined)}
+                    >
+                      <X className="h-4 w-4 mr-1" />
+                      حذف انتخاب
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
 

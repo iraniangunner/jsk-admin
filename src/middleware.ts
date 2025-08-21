@@ -21,10 +21,9 @@ export async function middleware(req: NextRequest) {
   const expStr = req.cookies.get("expires_at")?.value;
   const now = Date.now();
 
-  // صفحه login
-  // جلوگیری از کش صفحات حساس
-
   const res = NextResponse.next();
+
+  // جلوگیری از کش صفحات حساس
   if (pathname === "/" || pathname === "/login") {
     res.headers.set(
       "Cache-Control",
@@ -42,11 +41,49 @@ export async function middleware(req: NextRequest) {
     return res;
   }
 
+// ==== چک session واقعی با GET و x-api-key ====
+// if (access) {
+//   try {
+//     const verifyRes = await fetch(
+//       `${process.env.NEXT_PUBLIC_API_URL}/session/verify`,
+//       {
+//         method: "GET",
+//         headers: {
+//           "x-api-key": access,
+//         },
+//         cache: "no-store", // خیلی مهم: جلوی کش رو می‌گیره
+//       }
+//     );
+
+//     if (!verifyRes.ok) {
+//       throw new Error(`Verify API returned ${verifyRes.status}`);
+//     }
+
+//     const data = await verifyRes.json();
+
+//     if (data.status !== "valid") {
+//       const logoutRes = NextResponse.redirect(new URL("/login", req.url));
+//       logoutRes.cookies.set("access_token", "", { path: "/", maxAge: 0 });
+//       logoutRes.cookies.set("refresh_token", "", { path: "/", maxAge: 0 });
+//       logoutRes.cookies.set("expires_at", "", { path: "/", maxAge: 0 });
+//       return logoutRes;
+//     }
+//   } catch (err) {
+//     console.error("Session verification failed:", err);
+//     const logoutRes = NextResponse.redirect(new URL("/login", req.url));
+//     logoutRes.cookies.set("access_token", "", { path: "/", maxAge: 0 });
+//     logoutRes.cookies.set("refresh_token", "", { path: "/", maxAge: 0 });
+//     logoutRes.cookies.set("expires_at", "", { path: "/", maxAge: 0 });
+//     return logoutRes;
+//   }
+// }
+
+
   // اگر access token موجود نیست یا منقضی شده
   if (!access || !expStr || Number(expStr) <= now) {
     if (refresh) {
       const newToken = await refreshAccessToken(refresh);
-      if (newToken) return NextResponse.next(); // refresh موفق
+      if (newToken) return res; // refresh موفق
     }
 
     const loginUrl = new URL("/login", req.url);
@@ -57,10 +94,10 @@ export async function middleware(req: NextRequest) {
   // نزدیک انقضا → refresh خودکار
   if (Number(expStr) - now <= THRESHOLD_MS && refresh) {
     const newToken = await refreshAccessToken(refresh);
-    if (newToken) return NextResponse.next();
+    if (newToken) return res;
   }
 
-  return NextResponse.next();
+  return res;
 }
 
 export const config = {

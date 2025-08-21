@@ -1,54 +1,70 @@
 "use client";
 
-import { useState, useEffect, type ChangeEvent, type FormEvent } from "react";
+import * as React from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Loader2, Upload, X, ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
   Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
 } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import { updateProject, getProjectById } from "@/hooks/use-project";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ArrowLeft, Badge, Loader2, Upload, X } from "lucide-react";
+import { getProjectById, updateProject } from "@/hooks/use-project";
 import { getCategories } from "@/hooks/use-category";
+import { toast, ToastContainer } from "react-toastify";
 
-interface ProjectFormData {
+// انواع
+type Category = { id: number; title: string };
+type ProjectImage = { id: number; image: string; full_path?: string }; // full_path اگر بک‌اند برگرداند
+type Project = {
+  id: number;
   title: string;
-  title_en: string;
+  title_en: string | null;
   employer: string;
-  employer_en: string;
-  start_date: string;
+  employer_en: string | null;
+  start_date: string; // "YYYY-MM-DD"
   location: string;
-  location_en: string;
+  location_en: string | null;
   text: string;
-  text_en: string;
-}
+  text_en: string | null;
+  preview_image: string | null; // مسیر/URL
+  video: string | null; // مسیر/URL
+  images: ProjectImage[];
+  categories: Category[];
+};
 
-interface ImageItem {
-  id: string;
+// برای آیتم‌های گالری در UI
+type ImageItem = {
+  // برای تصاویر موجود
+  id?: number;
+  // برای تصاویر جدید:
   file?: File;
-  preview: string;
-  isExisting?: boolean;
-  url?: string;
-}
-
-// Generate a unique ID
-const generateId = () => Math.random().toString(36).substring(2, 9);
+  // آدرس قابل نمایش (قدیمی: URL فایل از سرور، جدید: ObjectURL)
+  url: string;
+  // آیا برای حذف علامت خورده؟
+  toDelete?: boolean;
+  // آیا قبلی است؟
+  isExisting: boolean;
+};
 
 export function EditProject() {
   const router = useRouter();
   const params = useParams();
   const projectId = params.id as string;
-  const [projectFormData, setProjectFormData] = useState<ProjectFormData>({
+
+  
+  // const [submitting, setSubmitting] = React.useState(false);
+  // const [error, setError] = React.useState<string | null>(null);
+
+  // فرم‌های ساده
+  const [form, setForm] = React.useState({
     title: "",
     title_en: "",
     employer: "",
@@ -59,16 +75,34 @@ export function EditProject() {
     text: "",
     text_en: "",
   });
-  const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
-  const [videoFile, setVideoFile] = useState<File | null>(null);
-  const [videoPreview, setVideoPreview] = useState<string | null>(null);
-  const [existingVideo, setExistingVideo] = useState<string | null>(null);
-  const [imageItems, setImageItems] = useState<ImageItem[]>([]);
-  const [existingImagesToDelete, setExistingImagesToDelete] = useState<
-    string[]
-  >([]);
 
-  // Update mutation
+  // دسته‌بندی‌ها (آرایه)
+  const [selectedCategories, setSelectedCategories] = React.useState<number[]>(
+    []
+  );
+
+  // Preview image (کاور)
+  const [existingPreviewUrl, setExistingPreviewUrl] = React.useState<
+    string | null
+  >(null);
+  const [previewFile, setPreviewFile] = React.useState<File | null>(null);
+  const [deletePreview, setDeletePreview] = React.useState(false);
+
+  // Video
+  const [existingVideoUrl, setExistingVideoUrl] = React.useState<string | null>(
+    null
+  );
+  const [videoFile, setVideoFile] = React.useState<File | null>(null);
+  const [videoPreviewUrl, setVideoPreviewUrl] = React.useState<string | null>(
+    null
+  );
+  const [deleteVideo, setDeleteVideo] = React.useState(false);
+
+  // گالری
+  const [imageItems, setImageItems] = React.useState<ImageItem[]>([]);
+
+  // update project
+
   const { mutate: updateProjectMutation, isPending: isSaving } =
     updateProject();
 
@@ -82,181 +116,207 @@ export function EditProject() {
     isError: projectError,
   } = getProjectById(projectId);
 
-  // Add a useEffect to update form state when project data is loaded
-  useEffect(() => {
-    if (projectData) {
-      // Set form data
-      setProjectFormData({
-        title: projectData.title || "",
-        title_en: projectData.title_en || "",
-        employer: projectData.employer || "",
-        employer_en: projectData.employer_en || "",
-        start_date: projectData.start_date || "",
-        location: projectData.location || "",
-        location_en: projectData.location_en || "",
-        text: projectData.text || "",
-        text_en: projectData.text_en || "",
+
+  // fetch پروژه و دسته‌بندی‌ها
+  React.useEffect(() => {
+    
+    (async () => {
+      try {
+        // ست فیلدها
+        setForm({
+          title: projectData.title || "",
+          title_en: projectData.title_en || "",
+          employer: projectData.employer || "",
+          employer_en: projectData.employer_en || "",
+          start_date: projectData.start_date || "",
+          location: projectData.location || "",
+          location_en: projectData.location_en || "",
+          text: projectData.text || "",
+          text_en: projectData.text_en || "",
+        });
+
+        setSelectedCategories(
+          (projectData.categories || []).map((c: any) => c.id)
+        );
+
+        // preview image
+        setExistingPreviewUrl(projectData.preview_image_url || null);
+        setDeletePreview(false);
+        setPreviewFile(null);
+
+        // video
+        setExistingVideoUrl(projectData.video || null);
+        setDeleteVideo(false);
+        setVideoFile(null);
+        setVideoPreviewUrl(null);
+
+        // گالری
+        const mapped: ImageItem[] = (projectData.images || []).map(
+          (img: any) => ({
+            id: img.id,
+            url: img.full_path || img.image, // اگر full_path داری از آن استفاده کن
+            isExisting: true,
+            toDelete: false,
+          })
+        );
+        setImageItems(mapped);
+      } catch (e: any) {
+        // setError(e?.message || "خطا در دریافت اطلاعات");
+      } finally {
+        // setLoading(false);
+      }
+    })();
+
+    return () => {
+      // جمع‌آوری URLهای موقت
+      imageItems.forEach((it) => {
+        if (!it.isExisting && it.url?.startsWith("blob:")) {
+          URL.revokeObjectURL(it.url);
+        }
       });
-
-      // Set categories
-      if (projectData.categories && Array.isArray(projectData.categories)) {
-        setSelectedCategories(projectData.categories.map((cat: any) => cat.id));
+      if (videoPreviewUrl?.startsWith("blob:")) {
+        URL.revokeObjectURL(videoPreviewUrl);
       }
-
-      // Set video
-      if (projectData.video) {
-        setExistingVideo(projectData.video);
-        setVideoPreview(projectData.video);
-      }
-      // Set video to null if the value is video
-      if (typeof projectData.video === "string") {
-        setExistingVideo(null);
-        setVideoPreview(null);
-      }
-
-      // Set images
-      if (projectData.images && Array.isArray(projectData.images)) {
-        const existingImages = projectData.images.map((img: any) => ({
-          id: generateId(),
-          preview: img.full_path,
-          isExisting: true,
-          url: img.url,
-        }));
-        setImageItems(existingImages);
-      }
-    }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectData]);
 
-  const handleInputChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  const onChangeText = (
+    e:
+      | React.ChangeEvent<HTMLInputElement>
+      | React.ChangeEvent<HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setProjectFormData((prev) => ({ ...prev, [name]: value }));
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleCategoryChange = (id: number, checked: boolean) => {
-    if (checked) {
-      setSelectedCategories((prev) => [...prev, id]);
-    } else {
-      setSelectedCategories((prev) =>
-        prev.filter((categoryId) => categoryId !== id)
-      );
-    }
+  const toggleCategory = (id: number, checked: boolean | "indeterminate") => {
+    const isChecked = checked === true;
+    setSelectedCategories((prev) =>
+      isChecked ? [...prev, id] : prev.filter((cid) => cid !== id)
+    );
   };
 
-  const handleVideoChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setVideoFile(file);
-      const url = URL.createObjectURL(file);
-      setVideoPreview(url);
-      setExistingVideo(null); // Clear existing video reference
-    }
+  // اضافه کردن تصاویر جدید با پیش‌نمایش
+  const onAddImages = (files: FileList | null) => {
+    if (!files) return;
+    const arr = Array.from(files);
+    const mapped = arr.map<ImageItem>((file) => ({
+      file,
+      url: URL.createObjectURL(file),
+      isExisting: false,
+      toDelete: false,
+    }));
+    setImageItems((prev) => [...prev, ...mapped]);
   };
 
-  const handleImagesChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files) {
-      const newFiles = Array.from(files);
-
-      // Create new image items with previews and unique IDs
-      const newImageItems = newFiles.map((file) => ({
-        id: generateId(),
-        file,
-        preview: URL.createObjectURL(file),
-        isExisting: false,
-      }));
-
-      setImageItems((prev) => [...prev, ...newImageItems]);
-    }
+  // علامت زدن/برداشتن حذف برای تصاویر موجود
+  const toggleDeleteExisting = (index: number) => {
+    setImageItems((prev) =>
+      prev.map((it, i) =>
+        i === index ? { ...it, toDelete: !it.toDelete } : it
+      )
+    );
   };
 
-  //   console.log(existingImagesToDelete);
-  //   console.log(imageItems);
-
-//   const removeImage = (id: string) => {
-//     setImageItems((prevItems) => {
-      //   const itemToRemove = prevItems.find((item) => item.id === id);
-      //   if (itemToRemove) {
-      //     // Revoke the object URL to avoid memory leaks
-      //     if (!itemToRemove.isExisting) {
-      //       URL.revokeObjectURL(itemToRemove.preview);
-      //     } else if (itemToRemove.url) {
-      //       // Mark existing image for deletion on the server
-      //       setExistingImagesToDelete((prev) => [...prev, itemToRemove.url!]);
-      //     }
-      //   }
-
-      // Return a new array without the removed item
-//       return prevItems.filter((item) => item.id !== id);
-//     });
-//   };
-
-  const removeImage = (id: string) => {
-    setImageItems((prevItems) => {
-      // Clean up memory for new images before removing
-      const itemToRemove = prevItems.find(item => item.id === id);
-      if (itemToRemove && !itemToRemove.isExisting) {
-        URL.revokeObjectURL(itemToRemove.preview);
+  // حذف از UI برای تصاویر جدید (قبل از ارسال)
+  const removeNewImage = (index: number) => {
+    setImageItems((prev) => {
+      const target = prev[index];
+      if (target && !target.isExisting && target.url?.startsWith("blob:")) {
+        URL.revokeObjectURL(target.url);
       }
-      
-      return prevItems.filter((item) => item.id !== id);
+      return prev.filter((_, i) => i !== index);
     });
   };
 
-  const removeVideo = () => {
-    if (videoPreview && !existingVideo) {
-      URL.revokeObjectURL(videoPreview);
+  // ویدیو
+  const onChangeVideo = (file?: File) => {
+    // پاک کردن prev URL
+    if (videoPreviewUrl?.startsWith("blob:"))
+      URL.revokeObjectURL(videoPreviewUrl);
+
+    if (file) {
+      setVideoFile(file);
+      const url = URL.createObjectURL(file);
+      setVideoPreviewUrl(url);
+      setDeleteVideo(false);
+    } else {
+      setVideoFile(null);
+      setVideoPreviewUrl(null);
     }
-    setVideoFile(null);
-    setVideoPreview(null);
-    setExistingVideo(null);
   };
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-
-    if (!projectFormData.employer || !projectFormData.text) {
-      toast.error("لطفا فیلدهای ضروری را پر کنید");
-      return;
+  // preview image
+  const onChangePreviewImage = (file?: File) => {
+    if (previewFile && (previewFile as any).__tmpUrl) {
+      URL.revokeObjectURL((previewFile as any).__tmpUrl);
     }
+    if (file) {
+      // برای نمایش سریع می‌توانیم یک URL موقت تولید کنیم:
+      const tmpUrl = URL.createObjectURL(file);
+      (file as any).__tmpUrl = tmpUrl;
+      setPreviewFile(file);
+      setDeletePreview(false);
+    } else {
+      setPreviewFile(null);
+      setDeletePreview(true);
+    }
+  };
+
+  const onSubmit = async () => {
+    if (!projectData) return;
+    // setSubmitting(true);
+    // setError(null);
 
     try {
-      // Create formData for file uploads
-      const formData = new FormData();
+      const fd = new FormData();
 
-      // Add form values
-      Object.entries(projectFormData).forEach(([key, value]) => {
-        if (value) {
-          formData.append(key, value as string);
+      // داده‌های متنی
+      Object.entries(form).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          fd.append(key, String(value));
         }
       });
 
-      // Add categories
-      selectedCategories.forEach((id, index) => {
-        formData.append(`category_id[${index}]`, id.toString());
-      });
+      // دسته‌بندی‌ها
+      selectedCategories.forEach((id) =>
+        fd.append("category_id[]", String(id))
+      );
 
-      // Add video if exists
-      if (videoFile) {
-        formData.append("video", videoFile);
+      // preview image / delete_preview
+      if (deletePreview) {
+        fd.append("delete_preview_image", "true");
+      }
+      if (previewFile) {
+        fd.append("preview_image", previewFile);
       }
 
-      // Add all images (both new and existing that weren't removed)
-      //   const imagesToUpload = imageItems.filter(
-      //     (item) => item.isExisting && !item.file
-      //   );
-      imageItems.forEach((item, index) => {
-        if (item.file) {
-          formData.append(`images[${index}]`, item.file);
-        }
-      });
+      // گالری: حذف تصاویر موجودِ علامت‌خورده
+      imageItems
+        .filter((it) => it.isExisting && it.toDelete && it.id)
+        .forEach((it) => fd.append("delete_image_ids[]", String(it.id)));
 
-      formData.append("_method", "PUT");
+      // گالری: افزودن تصاویر جدید
+      imageItems
+        .filter((it) => !it.isExisting && it.file)
+        .forEach((it) => fd.append("images[]", it.file as File));
 
-      // Send to API
+      // ویدیو
+      if (deleteVideo) {
+        fd.append("delete_video", "true");
+      }
+      if (videoFile) {
+        fd.append("video", videoFile);
+      }
+
+      // در صورتی که Route شما PUT است و سرور از method override استفاده می‌کند:
+      fd.append("_method", "PUT");
+
+      // ارسال:
+
       updateProjectMutation(
-        { id: projectId, formData },
+        { id: projectId, formData: fd },
         {
           onSuccess: () => {
             toast.success("پروژه با موفقیت بروزرسانی شد");
@@ -271,58 +331,43 @@ export function EditProject() {
           },
         }
       );
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      toast.error(
-        error instanceof Error ? error.message : "خطا در ارسال اطلاعات"
-      );
+
+      // ریدایرکت یا پیام موفقیت
+      // router.push("/projects");
+    } catch (e: any) {
+      // setError(e?.response?.data?.message || e?.message || "خطا در بروزرسانی");
+    } finally {
+      // setSubmitting(false);
     }
   };
 
-  // Clean up object URLs when component unmounts
-  useEffect(() => {
-    return () => {
-      imageItems
-        .filter((item) => !item.isExisting)
-        .forEach((item) => URL.revokeObjectURL(item.preview));
-
-      if (videoPreview && !existingVideo) URL.revokeObjectURL(videoPreview);
-    };
-  }, [imageItems, videoPreview, existingVideo]);
-
   if (projectLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <span className="mr-2">در حال بارگذاری...</span>
+      <div className="flex items-center justify-center h-72">
+        <Loader2 className="h-6 w-6 animate-spin mr-2" />
+        در حال بارگذاری...
       </div>
     );
   }
-
   if (projectError) {
     return (
-      <div className="flex justify-center items-center h-64 flex-col">
-        <p className="text-destructive text-lg mb-4">
-          خطا در بارگذاری اطلاعات پروژه
-        </p>
-        <Button variant="outline" onClick={() => router.push("/projects")}>
-          بازگشت به لیست پروژه‌ها
+      <div className="max-w-md mx-auto my-12 text-center">
+        <p className="text-destructive mb-4">مشکلی پیش آمده دوباره تلاش کنید</p>
+        <Button variant="outline" onClick={() => router.refresh()}>
+          تلاش مجدد
         </Button>
       </div>
     );
   }
+  if (!projectData) return null;
 
   return (
     <>
       <ToastContainer />
-      <div className="container py-10 max-w-4xl mx-auto" dir="rtl">
+      <div className="container max-w-4xl mx-auto py-10" dir="rtl">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold">ویرایش پروژه</h1>
-          <Button
-            variant="outline"
-            className="cursor-pointer"
-            onClick={() => router.push("/projects")}
-          >
+          <Button variant="outline" className="cursor-pointer" onClick={() => router.push("/projects")}>
             <ArrowLeft className="ml-2 h-4 w-4" />
             بازگشت به لیست
           </Button>
@@ -330,285 +375,328 @@ export function EditProject() {
 
         <Card>
           <CardHeader>
-            <CardTitle>ویرایش پروژه</CardTitle>
-            <CardDescription>اطلاعات پروژه را ویرایش کنید</CardDescription>
+            <CardTitle>اطلاعات پروژه</CardTitle>
+            <CardDescription>
+              فیلدها را ویرایش و رسانه‌ها را مدیریت کنید
+            </CardDescription>
           </CardHeader>
+
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="title">عنوان پروژه</Label>
+            {/* فیلدها */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="title">عنوان</Label>
                 <Input
                   id="title"
                   name="title"
-                  placeholder="عنوان پروژه را وارد کنید"
-                  value={projectFormData.title}
-                  onChange={handleInputChange}
+                  value={projectData.title}
+                  onChange={onChangeText}
                 />
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="title_en">عنوان انگلیسی</Label>
+              <div>
+                <Label htmlFor="title_en">عنوان (EN)</Label>
                 <Input
                   id="title_en"
                   name="title_en"
-                  placeholder="Enter project title"
+                  value={projectData.title_en}
+                  onChange={onChangeText}
                   dir="ltr"
-                  value={projectFormData.title_en}
-                  onChange={handleInputChange}
                 />
               </div>
-
-              <div className="space-y-2">
+              <div>
                 <Label htmlFor="employer">کارفرما</Label>
                 <Input
                   id="employer"
                   name="employer"
-                  placeholder="نام کارفرما را وارد کنید"
-                  value={projectFormData.employer}
-                  onChange={handleInputChange}
+                  value={projectData.employer}
+                  onChange={onChangeText}
                 />
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="employer_en">کارفرما (انگلیسی)</Label>
+              <div>
+                <Label htmlFor="employer_en">کارفرما (EN)</Label>
                 <Input
                   id="employer_en"
                   name="employer_en"
-                  placeholder="Enter employer name"
+                  value={projectData.employer_en}
+                  onChange={onChangeText}
                   dir="ltr"
-                  value={projectFormData.employer_en}
-                  onChange={handleInputChange}
                 />
               </div>
-
-              <div className="space-y-2">
+              <div>
                 <Label htmlFor="start_date">تاریخ شروع</Label>
                 <Input
                   id="start_date"
                   name="start_date"
-                  placeholder="تاریخ شروع را وارد کنید (مثال: 1402-06-15)"
-                  value={projectFormData.start_date}
-                  onChange={handleInputChange}
+                  value={projectData.start_date}
+                  onChange={onChangeText}
+                  placeholder="YYYY-MM-DD"
                 />
               </div>
-
-              <div className="space-y-2">
-                <Label>دسته‌بندی‌ها</Label>
-                <p className="text-sm text-muted-foreground">
-                  حداقل یک دسته‌بندی را انتخاب کنید
-                </p>
-                <div className="grid grid-cols-2 gap-2 pt-2">
-                  {categoriesLoading ? (
-                    <p>loading....</p>
-                  ) : (
-                    <>
-                      {categories.map((category: any) => (
-                        <div
-                          key={category.id}
-                          className="flex items-center space-x-2 space-x-reverse"
-                        >
-                          <Checkbox
-                            id={`category-${category.id}`}
-                            checked={selectedCategories.includes(category.id)}
-                            onCheckedChange={(checked) =>
-                              handleCategoryChange(
-                                category.id,
-                                checked === true
-                              )
-                            }
-                          />
-                          <Label
-                            htmlFor={`category-${category.id}`}
-                            className="text-sm font-normal cursor-pointer mr-2"
-                          >
-                            {category.title}
-                          </Label>
-                        </div>
-                      ))}
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="location">مکان پروژه</Label>
+              <div>
+                <Label htmlFor="location">مکان</Label>
                 <Input
                   id="location"
                   name="location"
-                  placeholder="مکان پروژه را وارد کنید"
-                  value={projectFormData.location}
-                  onChange={handleInputChange}
+                  value={projectData.location}
+                  onChange={onChangeText}
                 />
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="location_en">مکان پروژه (انگلیسی)</Label>
+              <div>
+                <Label htmlFor="location_en">مکان (EN)</Label>
                 <Input
                   id="location_en"
                   name="location_en"
-                  placeholder="Enter project location"
+                  value={projectData.location_en}
+                  onChange={onChangeText}
                   dir="ltr"
-                  value={projectFormData.location_en}
-                  onChange={handleInputChange}
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
                 <Label htmlFor="text">توضیحات</Label>
                 <Textarea
                   id="text"
                   name="text"
-                  placeholder="توضیحات پروژه را وارد کنید"
+                  value={projectData.text}
+                  onChange={onChangeText}
                   className="min-h-[120px]"
-                  value={projectFormData.text}
-                  onChange={handleInputChange}
                 />
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="text_en">توضیحات (انگلیسی)</Label>
+              <div>
+                <Label htmlFor="text_en">توضیحات (EN)</Label>
                 <Textarea
                   id="text_en"
                   name="text_en"
-                  placeholder="Enter project description"
+                  value={projectData.text_en}
+                  onChange={onChangeText}
                   className="min-h-[120px]"
                   dir="ltr"
-                  value={projectFormData.text_en}
-                  onChange={handleInputChange}
                 />
               </div>
             </div>
 
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="video-upload">ویدیو پروژه (MP4)</Label>
-                <div className="mt-2">
-                  <div className="flex items-center justify-center w-full">
+            {/* دسته‌بندی‌ها */}
+            <div>
+              <Label>دسته‌بندی‌ها</Label>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
+                {categories.map((cat: any) => {
+                  const checked = selectedCategories.includes(cat.id);
+                  return (
                     <label
-                      htmlFor="video-upload"
-                      className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-muted/50 hover:bg-muted/70"
+                      key={cat.id}
+                      className="flex items-center gap-2 rounded-md border p-2"
                     >
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
-                        <p className="mb-2 text-sm text-muted-foreground">
-                          <span className="font-semibold">
-                            برای آپلود ویدیو کلیک کنید
-                          </span>
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          MP4 (حداکثر 100MB)
-                        </p>
-                      </div>
-                      <Input
-                        id="video-upload"
-                        type="file"
-                        accept="video/mp4"
-                        className="hidden"
-                        onChange={handleVideoChange}
+                      <Checkbox
+                        checked={checked}
+                        onCheckedChange={(v) => toggleCategory(cat.id, v)}
                       />
+                      <span className="text-sm">{cat.title}</span>
+                      {checked && <Badge className="mr-auto">انتخاب شده</Badge>}
                     </label>
-                  </div>
-                </div>
+                  );
+                })}
+              </div>
+            </div>
 
-                {videoPreview && (
-                  <div className="mt-4 relative">
+            {/* Preview Image (کاور) */}
+            <div className="space-y-2">
+              <Label>تصویر کاور (Preview)</Label>
+              <div className="flex flex-wrap items-start gap-4">
+                {/* قبلی */}
+                {existingPreviewUrl && !deletePreview && !previewFile && (
+                  <div className="relative">
+                    <img
+                      src={existingPreviewUrl}
+                      alt="preview"
+                      className="w-40 h-40 object-cover rounded-lg border"
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="destructive"
+                      className="absolute top-2 right-2"
+                      onClick={() => setDeletePreview(true)}
+                    >
+                      <X className="h-4 w-4 mr-1" />
+                      حذف
+                    </Button>
+                  </div>
+                )}
+
+                {/* جدید */}
+                {(deletePreview || !existingPreviewUrl) && (
+                  <label className="flex flex-col items-center justify-center w-60 h-40 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/70">
+                    <div className="flex flex-col items-center">
+                      <Upload className="w-6 h-6 mb-2 opacity-70" />
+                      <span className="text-sm">برای آپلود کلیک کنید</span>
+                    </div>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) =>
+                        onChangePreviewImage(e.target.files?.[0] || undefined)
+                      }
+                    />
+                  </label>
+                )}
+
+                {/* پیش‌نمایش فایل جدید */}
+                {previewFile && (
+                  <div className="relative">
+                    <img
+                      src={(previewFile as any).__tmpUrl}
+                      alt="new-preview"
+                      className="w-40 h-40 object-cover rounded-lg border"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute top-2 right-2"
+                      onClick={() => onChangePreviewImage(undefined)}
+                    >
+                      <X className="h-4 w-4 mr-1" />
+                      حذف انتخاب
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* ویدیو */}
+            <div className="space-y-2">
+              <Label>ویدیو</Label>
+              <div className="flex flex-col gap-3">
+                {/* ویدیو موجود */}
+                {existingVideoUrl && !deleteVideo && !videoPreviewUrl && (
+                  <div className="relative w-full max-w-md">
+                    <video
+                      src={existingVideoUrl}
+                      controls
+                      className="w-full rounded-lg border"
+                    />
                     <Button
                       type="button"
                       variant="destructive"
                       size="sm"
-                      className="absolute top-2 right-2 z-10"
-                      onClick={removeVideo}
+                      className="absolute top-2 right-2"
+                      onClick={() => setDeleteVideo(true)}
                     >
-                      <X className="h-4 w-4" />
-                      <span className="sr-only">حذف ویدیو</span>
+                      <X className="h-4 w-4 mr-1" />
+                      حذف
                     </Button>
-                    <video
-                      src={videoPreview}
-                      controls
-                      className="w-full h-auto rounded-lg"
-                    />
                   </div>
                 )}
-              </div>
 
-              <div>
-                <Label htmlFor="images-upload">تصاویر پروژه</Label>
-                <p className="text-sm text-muted-foreground">
-                  حداقل یک تصویر آپلود کنید
-                </p>
-                <div className="mt-2">
-                  <div className="flex items-center justify-center w-full">
-                    <label
-                      htmlFor="images-upload"
-                      className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-muted/50 hover:bg-muted/70"
+                {/* انتخاب ویدیو جدید */}
+                {(deleteVideo || !existingVideoUrl) && !videoPreviewUrl && (
+                  <label className="flex flex-col items-center justify-center w-full max-w-md h-28 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/70">
+                    <div className="flex flex-col items-center">
+                      <Upload className="w-6 h-6 mb-2 opacity-70" />
+                      <span className="text-sm">آپلود ویدیو (MP4)</span>
+                    </div>
+                    <Input
+                      type="file"
+                      accept="video/mp4"
+                      className="hidden"
+                      onChange={(e) => onChangeVideo(e.target.files?.[0])}
+                    />
+                  </label>
+                )}
+
+                {/* پیش‌نمایش ویدیوی جدید */}
+                {videoPreviewUrl && (
+                  <div className="relative w-full max-w-md">
+                    <video
+                      src={videoPreviewUrl}
+                      controls
+                      className="w-full rounded-lg border"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute top-2 right-2"
+                      onClick={() => onChangeVideo(undefined)}
                     >
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
-                        <p className="mb-2 text-sm text-muted-foreground">
-                          <span className="font-semibold">
-                            برای آپلود تصاویر کلیک کنید
-                          </span>
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          PNG, JPG, JPEG
-                        </p>
-                      </div>
-                      <Input
-                        id="images-upload"
-                        type="file"
-                        accept="image/png, image/jpeg, image/jpg"
-                        multiple
-                        className="hidden"
-                        onChange={handleImagesChange}
-                      />
-                    </label>
-                  </div>
-                </div>
-
-                {imageItems.length > 0 && (
-                  <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                    {imageItems.map((item) => (
-                      <div key={item.id} className="relative">
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="icon"
-                          className="absolute top-2 right-2 h-6 w-6 z-10"
-                          onClick={() => removeImage(item.id)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                        <img
-                          src={item.preview || "/placeholder.svg"}
-                          alt={`Preview ${item.file?.name || "Image"}`}
-                          className="w-full h-32 object-cover rounded-lg"
-                        />
-                      </div>
-                    ))}
+                      <X className="h-4 w-4 mr-1" />
+                      حذف انتخاب
+                    </Button>
                   </div>
                 )}
               </div>
             </div>
+
+            {/* گالری تصاویر */}
+            <div className="space-y-2">
+              <Label>گالری تصاویر</Label>
+
+              {/* دکمه آپلود چندتایی */}
+              <label className="mt-2 flex flex-col items-center justify-center w-full h-28 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/70">
+                <div className="flex flex-col items-center">
+                  <Upload className="w-6 h-6 mb-2 opacity-70" />
+                  <span className="text-sm">برای افزودن تصاویر کلیک کنید</span>
+                  <span className="text-xs opacity-70">PNG, JPG, JPEG</span>
+                </div>
+                <Input
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => onAddImages(e.target.files)}
+                />
+              </label>
+
+              {/* گرید پیش‌نمایش */}
+              {imageItems.length > 0 && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4">
+                  {imageItems.map((it, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={it.url}
+                        alt="gallery"
+                        className={`w-full h-32 object-cover rounded-lg border ${
+                          it.toDelete ? "opacity-50 border-red-500" : ""
+                        }`}
+                      />
+
+                      {/* برای تصاویر موجود: چک حذف */}
+                      {it.isExisting ? (
+                        <div className="absolute top-2 right-2 flex items-center gap-1 bg-background/70 rounded-md px-2 py-1">
+                          <Checkbox
+                            checked={!!it.toDelete}
+                            onCheckedChange={() => toggleDeleteExisting(index)}
+                          />
+                          <span className="text-xs">حذف</span>
+                        </div>
+                      ) : (
+                        // برای تصاویر جدید: دکمه حذف از لیست
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="destructive"
+                          className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition"
+                          onClick={() => removeNewImage(index)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </CardContent>
+
           <CardFooter className="flex justify-between">
-            <Button
-              variant="outline"
-              className="cursor-pointer"
-              onClick={() => router.push("/projects")}
-              disabled={isSaving}
-            >
+            <Button variant="outline" onClick={() => router.push("/projects")} className="cursor-pointer">
               انصراف
             </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={isSaving}
-              className="cursor-pointer px-8 py-2"
-            >
-              {isSaving ? (
+            <Button onClick={onSubmit} disabled={isSaving} className="cursor-pointer">
+              {isSaving? (
                 <>
                   <Loader2 className="ml-2 h-4 w-4 animate-spin" />
                   در حال بروزرسانی...

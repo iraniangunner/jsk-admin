@@ -339,7 +339,7 @@ export function ProjectTable() {
             <div>
               <CardTitle>مدیریت پروژه ها</CardTitle>
               <CardDescription>
-                لیست همکاری های ارسال شده به سیستم. برای مرتب‌سازی بر اساس تاریخ
+                لیست پروژه های شرکت، برای مرتب‌سازی بر اساس تاریخ
                 ثبت، روی ستون تاریخ ثبت کلیک کنید.
               </CardDescription>
             </div>

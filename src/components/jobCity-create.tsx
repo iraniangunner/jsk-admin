@@ -1,8 +1,9 @@
 "use client";
 
 import { CardFooter } from "@/components/ui/card";
-import type React from "react";
-import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { useRouter } from "next/navigation";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
@@ -15,37 +16,68 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { createJobCity } from "@/hooks/use-jobCity";
+
+const formSchema = z.object({
+  title: z
+    .string()
+    .min(1, "لطفا عنوان فارسی را وارد کنید")
+    .max(16, "عنوان فارسی نباید بیشتر از 16 کاراکتر باشد"),
+  title_en: z
+    .string()
+    .max(16, "عنوان انگلیسی نباید بیشتر از 16 کاراکتر باشد")
+    .optional()
+    .or(z.literal("")),
+  order: z
+    .string()
+    .optional()
+    .refine(
+      (val) => {
+        if (!val || val === "") return true;
+        const num = Number(val);
+        return num > 0 && num <= 255;
+      },
+      {
+        message: "ترتیب نمایش باید بین 1 تا 255 باشد",
+      }
+    ),
+});
+
+type FormData = z.infer<typeof formSchema>;
 
 export function CreateJobCity() {
   const router = useRouter();
 
-  // Form state
-  const [title, setTitle] = useState("");
-  const [titleEn, setTitleEn] = useState("");
-  const [order, setOrder] = useState("");
+  const form = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      title: "",
+      title_en: "",
+      order: "",
+    },
+  });
 
   // Create mutation
   const { mutate: createJobCityMutation, isPending: isSaving } =
     createJobCity();
 
-  // Handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!title) {
-      toast.error("لطفا عنوان فارسی را وارد کنید");
-      return;
-    }
-
+  const onSubmit = async (values: FormData) => {
     try {
       // Prepare data object
       const data = {
-        title: title.trim(),
-        title_en: titleEn.trim() || undefined,
-        order: order ? Number(order) : undefined,
+        title: values.title.trim(),
+        title_en: values.title_en?.trim() || undefined,
+        order: values.order ? Number(values.order) : undefined,
       };
 
       // Call the create mutation
@@ -94,58 +126,78 @@ export function CreateJobCity() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="title" className="required mb-2">
-                    عنوان فارسی
-                  </Label>
-                  <Input
-                    id="title"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="عنوان فارسی شهر را وارد کنید"
-                    required
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-6"
+              >
+                <div className="grid gap-4">
+                  <FormField
+                    control={form.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="required">عنوان فارسی</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="عنوان فارسی شهر را وارد کنید"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="title_en"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>عنوان انگلیسی</FormLabel>
+                        <FormControl>
+                          <Input
+                            dir="ltr"
+                            placeholder="Enter English title (optional)"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <Separator className="my-2" />
+
+                  <FormField
+                    control={form.control}
+                    name="order"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>ترتیب نمایش</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="ترتیب نمایش (اختیاری)"
+                            min="1"
+                            max="255"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          عدد کمتر، اولویت نمایش بالاتر
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
                 </div>
-
-                <div className="grid gap-2">
-                  <Label htmlFor="title_en" className="mb-2">
-                    عنوان انگلیسی
-                  </Label>
-                  <Input
-                    dir="ltr"
-                    id="title_en"
-                    value={titleEn}
-                    onChange={(e) => setTitleEn(e.target.value)}
-                    placeholder="Enter English title (optional)"
-                  />
-                </div>
-
-                <Separator className="my-2" />
-
-                <div className="grid gap-2">
-                  <Label htmlFor="order" className="mb-2">
-                    ترتیب نمایش
-                  </Label>
-                  <Input
-                    id="order"
-                    type="number"
-                    value={order}
-                    onChange={(e) => setOrder(e.target.value)}
-                    placeholder="ترتیب نمایش (اختیاری)"
-                    min="1"
-                  />
-                  <p className="text-sm text-muted-foreground">
-                    عدد کمتر، اولویت نمایش بالاتر
-                  </p>
-                </div>
-              </div>
-            </form>
+              </form>
+            </Form>
           </CardContent>
           <CardFooter className="flex justify-center">
             <Button
-              onClick={handleSubmit}
+              onClick={form.handleSubmit(onSubmit)}
               disabled={isSaving}
               className="cursor-pointer px-8 py-2"
             >

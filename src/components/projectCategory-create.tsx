@@ -1,6 +1,9 @@
 "use client";
 
 import { CardFooter } from "@/components/ui/card";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { useRouter } from "next/navigation";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
@@ -15,15 +18,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { createJobCategory } from "@/hooks/use-jobCategory";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { createProjectCategory } from "@/hooks/use-projectCategory";
 
-const jobCategorySchema = z.object({
+const projectCategorySchema = z.object({
   title: z
     .string()
-    .min(1, "لطفا عنوان فارسی را وارد کنید")
+    .min(1, "عنوان فارسی الزامی است")
     .max(64, "عنوان فارسی نباید بیش از 64 کاراکتر باشد"),
   title_en: z
     .string()
@@ -37,24 +37,26 @@ const jobCategorySchema = z.object({
       (val) => {
         if (!val || val === "") return true;
         const num = Number(val);
-        return num > 0 && num <= 255;
+        return !isNaN(num) && num > 0 && num <= 255;
       },
-      { message: "ترتیب نمایش باید بین 1 تا 255 باشد" }
+      {
+        message: "ترتیب نمایش باید بین 1 تا 255 باشد",
+      }
     ),
 });
 
-type JobCategoryFormData = z.infer<typeof jobCategorySchema>;
+type ProjectCategoryFormData = z.infer<typeof projectCategorySchema>;
 
-export function CreateJobCategory() {
+export function CreateProjectCategory() {
   const router = useRouter();
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
     reset,
-  } = useForm<JobCategoryFormData>({
-    resolver: zodResolver(jobCategorySchema),
+  } = useForm<ProjectCategoryFormData>({
+    resolver: zodResolver(projectCategorySchema),
     defaultValues: {
       title: "",
       title_en: "",
@@ -63,28 +65,28 @@ export function CreateJobCategory() {
   });
 
   // Create mutation
-  const { mutate: createJobCategoryMutation, isPending: isSaving } =
-    createJobCategory();
+  const { mutate: createProjectCategoryMutation, isPending: isSaving } =
+    createProjectCategory();
 
-  const onSubmit = async (formData: JobCategoryFormData) => {
+  const onSubmit = async (data: ProjectCategoryFormData) => {
     try {
       // Prepare data object
-      const data = {
-        title: formData.title.trim(),
-        title_en: formData.title_en?.trim() || undefined,
-        order: formData.order ? Number(formData.order) : undefined,
+      const submitData = {
+        title: data.title.trim(),
+        title_en: data.title_en?.trim() || undefined,
+        order: data.order ? Number(data.order) : undefined,
       };
 
       // Call the create mutation
-      createJobCategoryMutation(
-        { data },
+      createProjectCategoryMutation(
+        { data: submitData },
         {
           onSuccess: () => {
             toast.success("دسته بندی با موفقیت ایجاد شد");
-            reset(); // Reset form on success
-            // Navigate back to job cities list after successful creation
+            reset();
+            // Navigate back to project categories list after successful creation
             setTimeout(() => {
-              router.push("/job-categories");
+              router.push("/project-categories");
             }, 1500);
           },
           onError: (error) => {
@@ -108,7 +110,7 @@ export function CreateJobCategory() {
           <Button
             variant="outline"
             className="cursor-pointer bg-transparent"
-            onClick={() => router.push("/job-categories")}
+            onClick={() => router.push("/project-categories")}
           >
             <ArrowLeft className="ml-2 h-4 w-4" />
             بازگشت به لیست
@@ -135,7 +137,7 @@ export function CreateJobCategory() {
                     className={errors.title ? "border-red-500" : ""}
                   />
                   {errors.title && (
-                    <p className="text-sm text-red-500">
+                    <p className="text-sm text-red-500 mt-1">
                       {errors.title.message}
                     </p>
                   )}
@@ -153,7 +155,7 @@ export function CreateJobCategory() {
                     className={errors.title_en ? "border-red-500" : ""}
                   />
                   {errors.title_en && (
-                    <p className="text-sm text-red-500">
+                    <p className="text-sm text-red-500 mt-1">
                       {errors.title_en.message}
                     </p>
                   )}
@@ -175,7 +177,7 @@ export function CreateJobCategory() {
                     className={errors.order ? "border-red-500" : ""}
                   />
                   {errors.order && (
-                    <p className="text-sm text-red-500">
+                    <p className="text-sm text-red-500 mt-1">
                       {errors.order.message}
                     </p>
                   )}
@@ -188,11 +190,12 @@ export function CreateJobCategory() {
           </CardContent>
           <CardFooter className="flex justify-center">
             <Button
+              type="submit"
               onClick={handleSubmit(onSubmit)}
-              disabled={isSaving || isSubmitting}
+              disabled={isSaving}
               className="cursor-pointer px-8 py-2"
             >
-              {isSaving || isSubmitting ? (
+              {isSaving ? (
                 <>
                   <Loader2 className="ml-2 h-4 w-4 animate-spin" />
                   در حال ایجاد...

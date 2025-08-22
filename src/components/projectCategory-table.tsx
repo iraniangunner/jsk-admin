@@ -40,8 +40,8 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
-import { deleteJobCategory, getJobCategories } from "@/hooks/use-jobCategory";
-import { JobCategory } from "@/types/jobCategory-types";
+import { deleteProjectCategory, getProjectCategories } from "@/hooks/use-projectCategory";
+import { ProjectCategory } from "@/types/projectCategory-types";
 
 const formatDate = (dateString: any) => {
   try {
@@ -52,14 +52,14 @@ const formatDate = (dateString: any) => {
   }
 };
 
-export function JobCategoryTable() {
+export function ProjectCategoryTable() {
   const [sorting, setSorting] = useState<SortingState>([
     { id: "created_at", desc: true },
   ]);
 
-  const { data, isLoading, isError } = getJobCategories();
+  const { data, isLoading, isError } = getProjectCategories();
 
-  const columns: ColumnDef<JobCategory>[] = [
+  const columns: ColumnDef<ProjectCategory>[] = [
     {
       accessorKey: "id",
       header: ({ column }) => {
@@ -115,14 +115,14 @@ export function JobCategoryTable() {
         return <div className="text-center">عملیات</div>;
       },
       cell: ({ row }) => {
-        const jobCategory = row.original;
+        const projectCategory = row.original;
         const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-        const { mutate: deleteJobCategorytById, isPending: isDeleting } =
-          deleteJobCategory();
+        const { mutate: deleteProjectCategorytById, isPending: isDeleting } =
+          deleteProjectCategory();
 
         const handleDelete = () => {
-            deleteJobCategorytById(jobCategory.id, {
+            deleteProjectCategorytById(projectCategory.id, {
             onSuccess: () => {
               toast.success("آیتم مورد نظر حذف شد");
               setShowDeleteDialog(false);
@@ -141,7 +141,7 @@ export function JobCategoryTable() {
               title="ویرایش دسته بندی"
             >
               <Link
-                href={`/job-categories/${jobCategory.id}/edit`}
+                href={`/project-categories/${projectCategory.id}/edit`}
                 className="w-full h-full flex justify-center items-center"
               >
                 <Edit className="h-4 w-4" />
@@ -225,12 +225,12 @@ export function JobCategoryTable() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle>مدیریت دسته بندی مشاغل</CardTitle>
+              <CardTitle>مدیریت دسته بندی پروژه ها</CardTitle>
               <CardDescription className="mt-2">
-                لیست دسته بندی های واحد های متقاضی شغل
+                لیست دسته بندی های پروژه ها
               </CardDescription>
             </div>
-            <Link href="/job-categories/create">
+            <Link href="/project-categories/create">
               <Button className="cursor-pointer">
                 <Plus className="h-4 w-4 mr-2" />
                 افزودن دسته بندی جدید

@@ -1,8 +1,9 @@
 "use client";
-
-import type React from "react";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -24,10 +25,33 @@ import {
   updateJobOpportunity,
   getJobOpportunityById,
 } from "@/hooks/use-jobOpportunity";
-import type {
-  UpdateJobOpportunityRequest,
-  JobOpportunity,
-} from "@/types/job-opportunity-types";
+import type { UpdateJobOpportunityRequest } from "@/types/job-opportunity-types";
+
+const jobOpportunitySchema = z.object({
+  title: z
+    .string()
+    .min(1, "عنوان شغل الزامی است")
+    .max(63, "عنوان شغل نباید بیش از 63 کاراکتر باشد"),
+  title_en: z
+    .string()
+    .max(63, "عنوان انگلیسی نباید بیش از 63 کاراکتر باشد")
+    .optional()
+    .or(z.literal("")),
+  job_category_id: z.number().min(1, "انتخاب دسته‌بندی الزامی است"),
+  city_id: z.number().min(1, "انتخاب شهر الزامی است"),
+  persian_content: z.object({
+    description: z.string().optional(),
+    requirements: z.array(z.string()),
+    responsibilities: z.array(z.string()),
+  }),
+  english_content: z.object({
+    description: z.string().optional(),
+    requirements: z.array(z.string()),
+    responsibilities: z.array(z.string()),
+  }),
+});
+
+type JobOpportunityFormData = z.infer<typeof jobOpportunitySchema>;
 
 interface StructuredJobData {
   description: string;
@@ -35,40 +59,43 @@ interface StructuredJobData {
   responsibilities: string[];
 }
 
-// interface JobOpportunityEditFormProps {
-//   //   jobId: string
-//   onSuccess?: (jobOpportunity: JobOpportunity) => void;
-//   onCancel?: () => void;
-// }
-
 export default function JobOpportunityEdit() {
   const router = useRouter();
   const params = useParams();
   const jobId = params.id as string;
 
-  // Form state
-  const [title, setTitle] = useState("");
-  const [titleEn, setTitleEn] = useState("");
-  const [jobCategoryId, setJobCategoryId] = useState(0);
-  const [cityId, setCityId] = useState(0);
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<JobOpportunityFormData>({
+    resolver: zodResolver(jobOpportunitySchema),
+    defaultValues: {
+      title: "",
+      title_en: "",
+      job_category_id: 0,
+      city_id: 0,
+      persian_content: {
+        description: "",
+        requirements: [""],
+        responsibilities: [""],
+      },
+      english_content: {
+        description: "",
+        requirements: [""],
+        responsibilities: [""],
+      },
+    },
+  });
 
-  // Persian structured data
-  const [persianDescription, setPersianDescription] = useState("");
-  const [persianRequirements, setPersianRequirements] = useState<string[]>([
-    "",
-  ]);
-  const [persianResponsibilities, setPersianResponsibilities] = useState<
-    string[]
-  >([""]);
-
-  // English structured data
-  const [englishDescription, setEnglishDescription] = useState("");
-  const [englishRequirements, setEnglishRequirements] = useState<string[]>([
-    "",
-  ]);
-  const [englishResponsibilities, setEnglishResponsibilities] = useState<
-    string[]
-  >([""]);
+  // Watch form values for dynamic arrays
+  const persianRequirements = watch("persian_content.requirements");
+  const persianResponsibilities = watch("persian_content.responsibilities");
+  const englishRequirements = watch("english_content.requirements");
+  const englishResponsibilities = watch("english_content.responsibilities");
 
   // API hooks
   const { data: categories, isLoading: loadingCategories } = getJobCategories();
@@ -107,131 +134,141 @@ export default function JobOpportunityEdit() {
     }
   };
 
-  // Load existing data
   useEffect(() => {
     if (jobOpportunity) {
-      setTitle(jobOpportunity.title || "");
-      setTitleEn(jobOpportunity.title_en || "");
-      setJobCategoryId(jobOpportunity.job_category_id || 0);
-      setCityId(jobOpportunity.city_id || 0);
-
       // Parse Persian data
       const parsedPersianData = parseStructuredData(jobOpportunity.text);
-      setPersianDescription(parsedPersianData.description);
-      setPersianRequirements(parsedPersianData.requirements);
-      setPersianResponsibilities(parsedPersianData.responsibilities);
-
       // Parse English data
       const parsedEnglishData = parseStructuredData(jobOpportunity.text_en);
-      setEnglishDescription(parsedEnglishData.description);
-      setEnglishRequirements(parsedEnglishData.requirements);
-      setEnglishResponsibilities(parsedEnglishData.responsibilities);
-    }
-  }, [jobOpportunity]);
 
-  // Persian requirement handlers
+      reset({
+        title: jobOpportunity.title || "",
+        title_en: jobOpportunity.title_en || "",
+        job_category_id: jobOpportunity.job_category_id || 0,
+        city_id: jobOpportunity.city_id || 0,
+        persian_content: {
+          description: parsedPersianData.description,
+          requirements: parsedPersianData.requirements,
+          responsibilities: parsedPersianData.responsibilities,
+        },
+        english_content: {
+          description: parsedEnglishData.description,
+          requirements: parsedEnglishData.requirements,
+          responsibilities: parsedEnglishData.responsibilities,
+        },
+      });
+    }
+  }, [jobOpportunity, reset]);
+
   const addPersianRequirement = () => {
-    setPersianRequirements([...persianRequirements, ""]);
+    setValue("persian_content.requirements", [...persianRequirements, ""]);
   };
 
   const removePersianRequirement = (index: number) => {
-    setPersianRequirements(persianRequirements.filter((_, i) => i !== index));
-  };
-
-  const updatePersianRequirement = (index: number, value: string) => {
-    setPersianRequirements(
-      persianRequirements.map((req, i) => (i === index ? value : req))
+    setValue(
+      "persian_content.requirements",
+      persianRequirements.filter((_, i) => i !== index)
     );
   };
 
-  // Persian responsibility handlers
+  const updatePersianRequirement = (index: number, value: string) => {
+    const updated = [...persianRequirements];
+    updated[index] = value;
+    setValue("persian_content.requirements", updated);
+  };
+
   const addPersianResponsibility = () => {
-    setPersianResponsibilities([...persianResponsibilities, ""]);
+    setValue("persian_content.responsibilities", [
+      ...persianResponsibilities,
+      "",
+    ]);
   };
 
   const removePersianResponsibility = (index: number) => {
-    setPersianResponsibilities(
+    setValue(
+      "persian_content.responsibilities",
       persianResponsibilities.filter((_, i) => i !== index)
     );
   };
 
   const updatePersianResponsibility = (index: number, value: string) => {
-    setPersianResponsibilities(
-      persianResponsibilities.map((resp, i) => (i === index ? value : resp))
-    );
+    const updated = [...persianResponsibilities];
+    updated[index] = value;
+    setValue("persian_content.responsibilities", updated);
   };
 
-  // English requirement handlers
   const addEnglishRequirement = () => {
-    setEnglishRequirements([...englishRequirements, ""]);
+    setValue("english_content.requirements", [...englishRequirements, ""]);
   };
 
   const removeEnglishRequirement = (index: number) => {
-    setEnglishRequirements(englishRequirements.filter((_, i) => i !== index));
-  };
-
-  const updateEnglishRequirement = (index: number, value: string) => {
-    setEnglishRequirements(
-      englishRequirements.map((req, i) => (i === index ? value : req))
+    setValue(
+      "english_content.requirements",
+      englishRequirements.filter((_, i) => i !== index)
     );
   };
 
-  // English responsibility handlers
+  const updateEnglishRequirement = (index: number, value: string) => {
+    const updated = [...englishRequirements];
+    updated[index] = value;
+    setValue("english_content.requirements", updated);
+  };
+
   const addEnglishResponsibility = () => {
-    setEnglishResponsibilities([...englishResponsibilities, ""]);
+    setValue("english_content.responsibilities", [
+      ...englishResponsibilities,
+      "",
+    ]);
   };
 
   const removeEnglishResponsibility = (index: number) => {
-    setEnglishResponsibilities(
+    setValue(
+      "english_content.responsibilities",
       englishResponsibilities.filter((_, i) => i !== index)
     );
   };
 
   const updateEnglishResponsibility = (index: number, value: string) => {
-    setEnglishResponsibilities(
-      englishResponsibilities.map((resp, i) => (i === index ? value : resp))
-    );
+    const updated = [...englishResponsibilities];
+    updated[index] = value;
+    setValue("english_content.responsibilities", updated);
   };
 
-  // Handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!title || jobCategoryId === 0 || cityId === 0) {
-      toast.error("لطفا تمام فیلدهای اجباری را پر کنید");
-      return;
-    }
-
+  const onSubmit = async (data: JobOpportunityFormData) => {
     try {
       // Structure the Persian data for text
       const structuredTextPersian = JSON.stringify({
-        description: persianDescription,
-        requirements: persianRequirements.filter((req) => req.trim() !== ""),
-        responsibilities: persianResponsibilities.filter(
+        description: data.persian_content.description,
+        requirements: data.persian_content.requirements.filter(
+          (req) => req.trim() !== ""
+        ),
+        responsibilities: data.persian_content.responsibilities.filter(
           (resp) => resp.trim() !== ""
         ),
       });
 
       // Structure the English data for text_en
       const structuredTextEnglish = JSON.stringify({
-        description: englishDescription,
-        requirements: englishRequirements.filter((req) => req.trim() !== ""),
-        responsibilities: englishResponsibilities.filter(
+        description: data.english_content.description,
+        requirements: data.english_content.requirements.filter(
+          (req) => req.trim() !== ""
+        ),
+        responsibilities: data.english_content.responsibilities.filter(
           (resp) => resp.trim() !== ""
         ),
       });
 
-      const data: UpdateJobOpportunityRequest = {
-        title: title.trim(),
-        title_en: titleEn.trim() || undefined,
-        job_category_id: jobCategoryId,
-        city_id: cityId,
+      const updateData: UpdateJobOpportunityRequest = {
+        title: data.title.trim(),
+        title_en: data.title_en?.trim() || undefined,
+        job_category_id: data.job_category_id,
+        city_id: data.city_id,
         text: structuredTextPersian,
         text_en: structuredTextEnglish,
       };
 
       updateJobMutation(
-        { id: jobId, data },
+        { id: jobId, data: updateData },
         {
           onSuccess: () => {
             toast.success("فرصت شغلی با موفقیت به‌روزرسانی شد");
@@ -304,7 +341,7 @@ export default function JobOpportunityEdit() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {/* Basic Information */}
               <div className="grid gap-4">
                 <div className="grid md:grid-cols-2 gap-4">
@@ -314,11 +351,14 @@ export default function JobOpportunityEdit() {
                     </Label>
                     <Input
                       id="title"
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
+                      {...register("title")}
                       placeholder="عنوان شغل را وارد کنید"
-                      required
                     />
+                    {errors.title && (
+                      <p className="text-sm text-red-500">
+                        {errors.title.message}
+                      </p>
+                    )}
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="title_en" className="mb-2">
@@ -327,10 +367,14 @@ export default function JobOpportunityEdit() {
                     <Input
                       dir="ltr"
                       id="title_en"
-                      value={titleEn}
-                      onChange={(e) => setTitleEn(e.target.value)}
+                      {...register("title_en")}
                       placeholder="Job Title (optional)"
                     />
+                    {errors.title_en && (
+                      <p className="text-sm text-red-500">
+                        {errors.title_en.message}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -341,13 +385,9 @@ export default function JobOpportunityEdit() {
                     </Label>
                     <select
                       id="category"
-                      value={jobCategoryId}
-                      onChange={(e) =>
-                        setJobCategoryId(Number.parseInt(e.target.value))
-                      }
+                      {...register("job_category_id", { valueAsNumber: true })}
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       disabled={loadingCategories}
-                      required
                     >
                       <option value={0}>
                         {loadingCategories
@@ -360,6 +400,11 @@ export default function JobOpportunityEdit() {
                         </option>
                       ))}
                     </select>
+                    {errors.job_category_id && (
+                      <p className="text-sm text-red-500">
+                        {errors.job_category_id.message}
+                      </p>
+                    )}
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="city" className="required mb-2">
@@ -367,13 +412,9 @@ export default function JobOpportunityEdit() {
                     </Label>
                     <select
                       id="city"
-                      value={cityId}
-                      onChange={(e) =>
-                        setCityId(Number.parseInt(e.target.value))
-                      }
+                      {...register("city_id", { valueAsNumber: true })}
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       disabled={loadingCities}
-                      required
                     >
                       <option value={0}>
                         {loadingCities ? "در حال بارگذاری..." : "انتخاب شهر"}
@@ -384,6 +425,11 @@ export default function JobOpportunityEdit() {
                         </option>
                       ))}
                     </select>
+                    {errors.city_id && (
+                      <p className="text-sm text-red-500">
+                        {errors.city_id.message}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -399,8 +445,7 @@ export default function JobOpportunityEdit() {
                     </Label>
                     <Textarea
                       id="description_fa"
-                      value={persianDescription}
-                      onChange={(e) => setPersianDescription(e.target.value)}
+                      {...register("persian_content.description")}
                       placeholder="توضیحات کلی شغل..."
                       rows={3}
                     />
@@ -492,8 +537,7 @@ export default function JobOpportunityEdit() {
                     <Textarea
                       dir="ltr"
                       id="description_en"
-                      value={englishDescription}
-                      onChange={(e) => setEnglishDescription(e.target.value)}
+                      {...register("english_content.description")}
                       placeholder="Brief job description..."
                       rows={3}
                     />
@@ -578,11 +622,11 @@ export default function JobOpportunityEdit() {
           </CardContent>
           <CardFooter className="flex justify-center">
             <Button
-              onClick={handleSubmit}
-              disabled={isSaving}
+              onClick={handleSubmit(onSubmit)}
+              disabled={isSubmitting || isSaving}
               className="cursor-pointer px-8 py-2"
             >
-              {isSaving ? (
+              {isSubmitting || isSaving ? (
                 <>
                   <Loader2 className="ml-2 h-4 w-4 animate-spin" />
                   در حال به‌روزرسانی...

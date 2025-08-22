@@ -1,11 +1,12 @@
 "use client";
-
-import type React from "react";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -19,15 +20,52 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { getJobCategoryById, updateJobCategory } from "@/hooks/use-jobCategory";
 
+const jobCategorySchema = z.object({
+  title: z
+    .string()
+    .min(1, "عنوان فارسی الزامی است")
+    .max(64, "عنوان فارسی نباید بیش از 64 کاراکتر باشد"),
+  title_en: z
+    .string()
+    .max(64, "عنوان انگلیسی نباید بیش از 64 کاراکتر باشد")
+    .optional()
+    .or(z.literal("")),
+  order: z
+    .string()
+    .optional()
+    .refine(
+      (val) => {
+        if (!val || val === "") return true;
+        const num = Number(val);
+        return !isNaN(num) && num > 0 && num <= 255;
+      },
+      {
+        message: "ترتیب باید عددی بین 1 تا 255 باشد",
+      }
+    ),
+});
+
+type JobCategoryFormData = z.infer<typeof jobCategorySchema>;
+
 export function EditJobCategory() {
   const router = useRouter();
   const params = useParams();
   const categoryId = params.id as string;
 
-  // Form state
-  const [title, setTitle] = useState("");
-  const [titleEn, setTitleEn] = useState("");
-  const [order, setOrder] = useState("");
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+    setValue,
+  } = useForm<JobCategoryFormData>({
+    resolver: zodResolver(jobCategorySchema),
+    defaultValues: {
+      title: "",
+      title_en: "",
+      order: "",
+    },
+  });
 
   // Queries and mutations
   const { data: jobCategory, isLoading: isLoadingJobCategory } =
@@ -35,35 +73,26 @@ export function EditJobCategory() {
   const { mutate: updateJobCategoryMutation, isPending: isSaving } =
     updateJobCategory();
 
-  // Load existing data
   useEffect(() => {
     if (jobCategory) {
-      setTitle(jobCategory.title || "");
-      setTitleEn(jobCategory.title_en || "");
-      setOrder(jobCategory.order?.toString() || "");
+      setValue("title", jobCategory.title || "");
+      setValue("title_en", jobCategory.title_en || "");
+      setValue("order", jobCategory.order?.toString() || "");
     }
-  }, [jobCategory]);
+  }, [jobCategory, setValue]);
 
-  // Handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!title) {
-      toast.error("لطفا عنوان فارسی را وارد کنید");
-      return;
-    }
-
+  const onSubmit = async (data: JobCategoryFormData) => {
     try {
       // Prepare data object
-      const data = {
-        title: title.trim(),
-        title_en: titleEn.trim() || undefined,
-        order: order ? Number(order) : undefined,
+      const submitData = {
+        title: data.title.trim(),
+        title_en: data.title_en?.trim() || undefined,
+        order: data.order ? Number(data.order) : undefined,
       };
 
       // Call the update mutation
       updateJobCategoryMutation(
-        { id: categoryId, data },
+        { id: categoryId, data: submitData },
         {
           onSuccess: () => {
             toast.success("دسته بندی با موفقیت به‌روزرسانی شد");
@@ -137,7 +166,7 @@ export function EditJobCategory() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <div className="grid gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="title" className="required mb-2">
@@ -145,11 +174,15 @@ export function EditJobCategory() {
                   </Label>
                   <Input
                     id="title"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
+                    {...register("title")}
                     placeholder="عنوان فارسی دسته بندی را وارد کنید"
-                    required
+                    className={errors.title ? "border-red-500" : ""}
                   />
+                  {errors.title && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {errors.title.message}
+                    </p>
+                  )}
                 </div>
 
                 <div className="grid gap-2">
@@ -159,10 +192,15 @@ export function EditJobCategory() {
                   <Input
                     dir="ltr"
                     id="title_en"
-                    value={titleEn}
-                    onChange={(e) => setTitleEn(e.target.value)}
+                    {...register("title_en")}
                     placeholder="Enter English title (optional)"
+                    className={errors.title_en ? "border-red-500" : ""}
                   />
+                  {errors.title_en && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {errors.title_en.message}
+                    </p>
+                  )}
                 </div>
 
                 <Separator className="my-2" />
@@ -174,11 +212,17 @@ export function EditJobCategory() {
                   <Input
                     id="order"
                     type="number"
-                    value={order}
-                    onChange={(e) => setOrder(e.target.value)}
+                    {...register("order")}
                     placeholder="ترتیب نمایش (اختیاری)"
                     min="1"
+                    max="255"
+                    className={errors.order ? "border-red-500" : ""}
                   />
+                  {errors.order && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {errors.order.message}
+                    </p>
+                  )}
                   <p className="text-sm text-muted-foreground">
                     عدد کمتر، اولویت نمایش بالاتر
                   </p>
@@ -188,7 +232,7 @@ export function EditJobCategory() {
           </CardContent>
           <CardFooter className="flex justify-center">
             <Button
-              onClick={handleSubmit}
+              onClick={handleSubmit(onSubmit)}
               disabled={isSaving}
               className="cursor-pointer px-8 py-2"
             >

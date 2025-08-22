@@ -1,4 +1,4 @@
-export interface JobCategory {
+export interface ProjectCategory {
   id: number;
   title: string;
   title_en?: string;
@@ -7,16 +7,14 @@ export interface JobCategory {
   updated_at?: string;
 }
 
-export interface CreateJobCategoryRequest {
+export interface CreateProjectCategoryRequest {
   title: string;
   title_en?: string;
   order?: number;
 }
 
-export interface UpdateJobCategoryRequest {
+export interface UpdateProjectCategoryRequest {
   title: string;
   title_en?: string;
   order?: number;
 }
-
-

@@ -57,6 +57,9 @@ export const updateJobCityById = async ({
     {
       method: "PUT",
       body: JSON.stringify(data),
+      // headers: {
+      //   "Content-Type": "application/json",
+      // },
     }
   );
 };
@@ -69,6 +72,9 @@ export const createNewJobCity = async ({
   return await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/cities`, {
     method: "POST",
     body: JSON.stringify(data),
+    // headers: {
+    //     "Content-Type": "application/json",
+    //   },
   });
 };
 

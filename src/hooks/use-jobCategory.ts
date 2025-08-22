@@ -62,6 +62,9 @@ export const updateJobCategoryById = async ({
     {
       method: "PUT",
       body: JSON.stringify(data),
+      // headers: {
+      //   "Content-Type": "application/json",
+      // },
     }
   );
 };
@@ -76,6 +79,9 @@ export const createNewJobCategory = async ({
     {
       method: "POST",
       body: JSON.stringify(data),
+      // headers: {
+      //   "Content-Type": "application/json",
+      // },
     }
   );
 };

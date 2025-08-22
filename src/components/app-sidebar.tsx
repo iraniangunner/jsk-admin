@@ -62,6 +62,11 @@ const sidebarItems: SidebarItemType[] = [
     href: "/slides",
   },
   {
+    title: "دسته بندی پروژه ها",
+    icon: HelpCircle,
+    href: "/project-categories",
+  },
+  {
     title: "پروژه ها",
     icon: HelpCircle,
     href: "/projects",
@@ -81,11 +86,11 @@ const sidebarItems: SidebarItemType[] = [
     icon: HelpCircle,
     href: "/job-opportunities",
   },
-  {
-    title: "مناقصات",
-    icon: HelpCircle,
-    href: "/tenders",
-  },
+  // {
+  //   title: "مناقصات",
+  //   icon: HelpCircle,
+  //   href: "/tenders",
+  // },
 ];
 
 export function AppSidebar() {

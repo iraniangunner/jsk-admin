@@ -1,7 +1,9 @@
 "use client";
-
-import { CardFooter } from "@/components/ui/card";
-import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -10,24 +12,25 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { createJobCategory } from "@/hooks/use-jobCategory";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import {
+  getProjectCategoryById,
+  updateProjectCategory,
+} from "@/hooks/use-projectCategory";
 
-const jobCategorySchema = z.object({
+const projectCategorySchema = z.object({
   title: z
     .string()
-    .min(1, "لطفا عنوان فارسی را وارد کنید")
-    .max(64, "عنوان فارسی نباید بیش از 64 کاراکتر باشد"),
+    .min(1, "عنوان فارسی الزامی است")
+    .max(64, "عنوان فارسی نباید بیشتر از 64 کاراکتر باشد"),
   title_en: z
     .string()
-    .max(64, "عنوان انگلیسی نباید بیش از 64 کاراکتر باشد")
+    .max(64, "عنوان انگلیسی نباید بیشتر از 64 کاراکتر باشد")
     .optional()
     .or(z.literal("")),
   order: z
@@ -37,24 +40,29 @@ const jobCategorySchema = z.object({
       (val) => {
         if (!val || val === "") return true;
         const num = Number(val);
-        return num > 0 && num <= 255;
+        return !isNaN(num) && num > 0 && num <= 255;
       },
-      { message: "ترتیب نمایش باید بین 1 تا 255 باشد" }
+      {
+        message: "ترتیب نمایش باید بین 1 تا 255 باشد",
+      }
     ),
 });
 
-type JobCategoryFormData = z.infer<typeof jobCategorySchema>;
+type ProjectCategoryFormData = z.infer<typeof projectCategorySchema>;
 
-export function CreateJobCategory() {
+export function EditProjectCategory() {
   const router = useRouter();
+  const params = useParams();
+  const categoryId = params.id as string;
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
     reset,
-  } = useForm<JobCategoryFormData>({
-    resolver: zodResolver(jobCategorySchema),
+    setValue,
+  } = useForm<ProjectCategoryFormData>({
+    resolver: zodResolver(projectCategorySchema),
     defaultValues: {
       title: "",
       title_en: "",
@@ -62,53 +70,94 @@ export function CreateJobCategory() {
     },
   });
 
-  // Create mutation
-  const { mutate: createJobCategoryMutation, isPending: isSaving } =
-    createJobCategory();
+  // Queries and mutations
+  const { data: projectCategory, isLoading: isLoadingProjectCategory } =
+    getProjectCategoryById(categoryId);
+  const { mutate: updateProjectCategoryMutation, isPending: isSaving } =
+    updateProjectCategory();
 
-  const onSubmit = async (formData: JobCategoryFormData) => {
+  useEffect(() => {
+    if (projectCategory) {
+      reset({
+        title: projectCategory.title || "",
+        title_en: projectCategory.title_en || "",
+        order: projectCategory.order?.toString() || "",
+      });
+    }
+  }, [projectCategory, reset]);
+
+  const onSubmit = async (data: ProjectCategoryFormData) => {
     try {
       // Prepare data object
-      const data = {
-        title: formData.title.trim(),
-        title_en: formData.title_en?.trim() || undefined,
-        order: formData.order ? Number(formData.order) : undefined,
+      const submitData = {
+        title: data.title.trim(),
+        title_en: data.title_en?.trim() || undefined,
+        order: data.order ? Number(data.order) : undefined,
       };
 
-      // Call the create mutation
-      createJobCategoryMutation(
-        { data },
+      // Call the update mutation
+      updateProjectCategoryMutation(
+        { id: categoryId, data: submitData },
         {
           onSuccess: () => {
-            toast.success("دسته بندی با موفقیت ایجاد شد");
-            reset(); // Reset form on success
-            // Navigate back to job cities list after successful creation
+            toast.success("دسته بندی با موفقیت به‌روزرسانی شد");
+            // Navigate back to project categories list after successful update
             setTimeout(() => {
-              router.push("/job-categories");
+              router.push("/project-categories");
             }, 1500);
           },
           onError: (error) => {
-            console.error("Create failed:", error);
-            toast.error("خطا در ایجاد دسته بندی . لطفا دوباره تلاش کنید.");
+            console.error("Update failed:", error);
+            toast.error("خطا در به‌روزرسانی دسته بندی. لطفا دوباره تلاش کنید.");
           },
         }
       );
     } catch (err) {
-      toast.error("خطا در ایجاد دسته بندی . لطفا دوباره تلاش کنید.");
+      toast.error("خطا در به‌روزرسانی دسته بندی. لطفا دوباره تلاش کنید.");
       console.error(err);
     }
   };
+
+  if (isLoadingProjectCategory) {
+    return (
+      <div className="container py-10 max-w-3xl mx-auto" dir="rtl">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="w-8 h-8 animate-spin" />
+          <span className="mr-2">در حال بارگذاری...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!projectCategory) {
+    return (
+      <div className="container py-10 max-w-3xl mx-auto" dir="rtl">
+        <Card>
+          <CardContent className="pt-6 text-center">
+            <p className="text-red-500">دسته بندی یافت نشد</p>
+            <Button
+              variant="outline"
+              className="mt-4 bg-transparent"
+              onClick={() => router.push("/project-categories")}
+            >
+              بازگشت به لیست
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <>
       <ToastContainer />
       <div className="container py-10 max-w-3xl mx-auto" dir="rtl">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">ایجاد دسته بندی</h1>
+          <h1 className="text-2xl font-bold">ویرایش دسته بندی</h1>
           <Button
             variant="outline"
             className="cursor-pointer bg-transparent"
-            onClick={() => router.push("/job-categories")}
+            onClick={() => router.push("/project-categories")}
           >
             <ArrowLeft className="ml-2 h-4 w-4" />
             بازگشت به لیست
@@ -118,7 +167,7 @@ export function CreateJobCategory() {
         <Card>
           <CardHeader>
             <CardDescription>
-              اطلاعات دسته بندی را وارد کنید و دکمه ایجاد را بزنید.
+              اطلاعات دسته بندی را ویرایش کنید و دکمه به‌روزرسانی را بزنید.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -188,17 +237,18 @@ export function CreateJobCategory() {
           </CardContent>
           <CardFooter className="flex justify-center">
             <Button
+              type="submit"
               onClick={handleSubmit(onSubmit)}
-              disabled={isSaving || isSubmitting}
+              disabled={isSaving}
               className="cursor-pointer px-8 py-2"
             >
-              {isSaving || isSubmitting ? (
+              {isSaving ? (
                 <>
                   <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                  در حال ایجاد...
+                  در حال به‌روزرسانی...
                 </>
               ) : (
-                "ایجاد دسته بندی"
+                "به روز رسانی"
               )}
             </Button>
           </CardFooter>

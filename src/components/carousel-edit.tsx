@@ -125,7 +125,8 @@ export default function EditCarousel() {
           onSuccess: () => {
             toast.success("اسلاید با موفقیت بروزرسانی شد");
             setTimeout(() => {
-              toast.info("در حالت نمایشی، بازگشت به لیست غیرفعال است");
+              // toast.info("در حالت نمایشی، بازگشت به لیست غیرفعال است");
+              router.push("/slides");
             }, 1500);
           },
           onError: (error) => {
@@ -183,7 +184,8 @@ export default function EditCarousel() {
             variant="outline"
             className="cursor-pointer bg-transparent"
             onClick={() =>
-              toast.info("در حالت نمایشی، بازگشت به لیست غیرفعال است")
+              // toast.info("در حالت نمایشی، بازگشت به لیست غیرفعال است")
+              router.push("/slides")
             }
           >
             <ArrowLeft className="ml-2 h-4 w-4" />

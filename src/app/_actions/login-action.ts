@@ -16,12 +16,20 @@ type LoginResp = {
   expires_in: number; // ثانیه
 };
 
-export async function loginAction(input: LoginInput) {
+export async function loginAction(prevState: any, formData: FormData) {
+  const email = formData.get("email") as string;
+  const password = formData.get("password") as string;
+
+  // Basic validation
+  if (!email || !password) {
+    return { isSuccess: false, error: "نام کاربری و رمز عبور را وارد کنید" };
+  }
+
   try {
     const res = await fetch(`${API_URL}/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(input),
+      body: JSON.stringify({ email, password }),
     });
 
     if (!res.ok) {
@@ -34,11 +42,20 @@ export async function loginAction(input: LoginInput) {
     const expiresAt = Date.now() + data.expires_in * 1000;
 
     // ست کردن کوکی‌ها
-    c.set("access_token", data.access_token, { ...cookieBase, maxAge: data.expires_in });
-    c.set("refresh_token", data.refresh_token, { ...cookieBase, maxAge: 7 * 24 * 60 * 60 });
-    c.set("expires_at", String(expiresAt), { ...cookieBase, maxAge: data.expires_in });
+    c.set("access_token", data.access_token, {
+      ...cookieBase,
+      maxAge: data.expires_in,
+    });
+    c.set("refresh_token", data.refresh_token, {
+      ...cookieBase,
+      maxAge: 7 * 24 * 60 * 60,
+    });
+    c.set("expires_at", String(expiresAt), {
+      ...cookieBase,
+      maxAge: data.expires_in,
+    });
 
-    return { isSuccess: true, error: "Login successful" };
+    return { isSuccess: true, error: "" };
   } catch (error) {
     return { isSuccess: false, error: "Login failed" };
   }
@@ -59,8 +76,14 @@ export async function refreshAccessToken(refreshToken: string) {
     const c = await cookies();
     const expiresAt = Date.now() + data.expires_in * 1000;
 
-    c.set("access_token", data.access_token, { ...cookieBase, maxAge: data.expires_in });
-    c.set("expires_at", String(expiresAt), { ...cookieBase, maxAge: data.expires_in });
+    c.set("access_token", data.access_token, {
+      ...cookieBase,
+      maxAge: data.expires_in,
+    });
+    c.set("expires_at", String(expiresAt), {
+      ...cookieBase,
+      maxAge: data.expires_in,
+    });
 
     return data.access_token;
   } catch (err) {

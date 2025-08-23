@@ -1,32 +1,50 @@
 "use client";
 
-import { useTransition } from "react";
+import { useFormState, useFormStatus } from "react-dom";
 import { logoutAction } from "@/app/_actions/logout-action";
 import { useRouter } from "next/navigation";
-import { LogOut } from "lucide-react";
+import { Loader2, LogOut } from "lucide-react";
+import { useEffect } from "react";
 
-export default function LogoutButton() {
-  const [isPending, startTransition] = useTransition();
-
-  const router = useRouter();
-
-  const handleLogout = () => {
-    startTransition(async () => {
-      const result = await logoutAction();
-      if (result.isSuccess) {
-        router.push("/login");
-      }
-    });
-  };
+function SubmitButton() {
+  const { pending } = useFormStatus();
 
   return (
     <button
-      onClick={handleLogout}
-      disabled={isPending}
-      className="flex items-center gap-2 text-destructive py-4 px-8 bg-gray-400 rounded-2xl my-10 cursor-pointer"
+      type="submit"
+      disabled={pending}
+      className="flex items-center gap-2 text-destructive py-4 px-8 bg-gray-400 rounded-2xl my-10 cursor-pointer disabled:opacity-50"
     >
-      <LogOut className="h-4 w-4" />
-      <span>{isPending ? "در حال خروج ..." : "خروج"}</span>
+      {pending ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+        <LogOut className="h-4 w-4" />
+      )}
+      <span>{pending ? "در حال خروج..." : "خروج"}</span>
     </button>
+  );
+}
+
+export default function LogoutButton() {
+  const [state, formAction] = useFormState(logoutAction, {
+    isSuccess: false,
+    error: "",
+  });
+
+  const router = useRouter();
+
+  useEffect(() => {
+    if (state.isSuccess) {
+      router.push("/login");
+    }
+  }, [state.isSuccess, router]);
+
+  return (
+    <form action={formAction}>
+      <SubmitButton />
+      {state.error && (
+        <p className="text-red-500 text-sm mt-2">{state.error}</p>
+      )}
+    </form>
   );
 }

@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
-export async function logoutAction() {
+export async function logoutAction(prevState: any, formData: FormData) {
   const c = await cookies();
   const accessToken = c.get("access_token")?.value;
 
@@ -21,12 +21,11 @@ export async function logoutAction() {
       c.delete("access_token");
       c.delete("refresh_token");
       c.delete("expires_at");
-      return { isSuccess: true };
+      return { isSuccess: true, error: "" };
     }
-    return { isSuccess: false };
+    return { isSuccess: false, error: "Logout failed" };
   } catch (err) {
     console.error("Logout failed:", err);
-    return { isSuccess: false };
+    return { isSuccess: false, error: "Network error occurred" };
   }
 }
-

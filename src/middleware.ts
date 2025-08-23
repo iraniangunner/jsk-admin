@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { refreshAccessToken } from "./app/_actions/login-action";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 const THRESHOLD_MS = 5 * 60 * 1000; // ۵ دقیقه قبل از انقضا
 
 export async function middleware(req: NextRequest) {
@@ -21,14 +21,11 @@ export async function middleware(req: NextRequest) {
   const expStr = req.cookies.get("expires_at")?.value;
   const now = Date.now();
 
-  const res = NextResponse.next();
+  let res = NextResponse.next();
 
   // جلوگیری از کش صفحات حساس
   if (pathname === "/" || pathname === "/login") {
-    res.headers.set(
-      "Cache-Control",
-      "no-store, no-cache, must-revalidate, proxy-revalidate"
-    );
+    res.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
     res.headers.set("Pragma", "no-cache");
     res.headers.set("Expires", "0");
   }
@@ -41,49 +38,46 @@ export async function middleware(req: NextRequest) {
     return res;
   }
 
-// ==== چک session واقعی با GET و x-api-key ====
-// if (access) {
-//   try {
-//     const verifyRes = await fetch(
-//       `${process.env.NEXT_PUBLIC_API_URL}/session/verify`,
-//       {
-//         method: "GET",
-//         headers: {
-//           "x-api-key": access,
-//         },
-//         cache: "no-store", // خیلی مهم: جلوی کش رو می‌گیره
-//       }
-//     );
+  // helper برای refresh
+  async function tryRefresh(refreshToken: string) {
+    try {
+      const r = await fetch(`${API_URL}/refresh`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh_token: refreshToken }),
+        cache: "no-store",
+      });
 
-//     if (!verifyRes.ok) {
-//       throw new Error(`Verify API returned ${verifyRes.status}`);
-//     }
+      if (!r.ok) return null;
+      const data = await r.json();
 
-//     const data = await verifyRes.json();
+      const expiresAt = Date.now() + data.expires_in * 1000;
 
-//     if (data.status !== "valid") {
-//       const logoutRes = NextResponse.redirect(new URL("/login", req.url));
-//       logoutRes.cookies.set("access_token", "", { path: "/", maxAge: 0 });
-//       logoutRes.cookies.set("refresh_token", "", { path: "/", maxAge: 0 });
-//       logoutRes.cookies.set("expires_at", "", { path: "/", maxAge: 0 });
-//       return logoutRes;
-//     }
-//   } catch (err) {
-//     console.error("Session verification failed:", err);
-//     const logoutRes = NextResponse.redirect(new URL("/login", req.url));
-//     logoutRes.cookies.set("access_token", "", { path: "/", maxAge: 0 });
-//     logoutRes.cookies.set("refresh_token", "", { path: "/", maxAge: 0 });
-//     logoutRes.cookies.set("expires_at", "", { path: "/", maxAge: 0 });
-//     return logoutRes;
-//   }
-// }
+      res.cookies.set("access_token", data.access_token, {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        maxAge: data.expires_in,
+      });
+      res.cookies.set("expires_at", String(expiresAt), {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        maxAge: data.expires_in,
+      });
 
+      return data.access_token;
+    } catch (err) {
+      console.error("refresh error:", err);
+      return null;
+    }
+  }
 
   // اگر access token موجود نیست یا منقضی شده
   if (!access || !expStr || Number(expStr) <= now) {
     if (refresh) {
-      const newToken = await refreshAccessToken(refresh);
-      if (newToken) return res; // refresh موفق
+      const newToken = await tryRefresh(refresh);
+      if (newToken) return res;
     }
 
     const loginUrl = new URL("/login", req.url);
@@ -93,7 +87,7 @@ export async function middleware(req: NextRequest) {
 
   // نزدیک انقضا → refresh خودکار
   if (Number(expStr) - now <= THRESHOLD_MS && refresh) {
-    const newToken = await refreshAccessToken(refresh);
+    const newToken = await tryRefresh(refresh);
     if (newToken) return res;
   }
 

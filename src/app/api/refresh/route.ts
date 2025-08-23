@@ -25,3 +25,4 @@ export async function GET() {
   const data = await res.json(); // { access_token, expires_at }
   return NextResponse.json(data);
 }
+

@@ -9,6 +9,14 @@ const cookieBase = {
   path: "/",
 };
 
+// const cookieBase = {
+//   httpOnly: true,
+//   sameSite: "none" as const,
+//   path: "/",
+//   secure: true,
+//   domain: ".jsk-co.com",
+// };
+
 type LoginInput = { email: string; password: string };
 type LoginResp = {
   access_token: string;
@@ -61,33 +69,33 @@ export async function loginAction(prevState: any, formData: FormData) {
   }
 }
 
-// تابع کمکی refresh token
-export async function refreshAccessToken(refreshToken: string) {
-  try {
-    const res = await fetch(`${API_URL}/refresh`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refresh_token: refreshToken }),
-    });
+// // تابع کمکی refresh token
+// export async function refreshAccessToken(refreshToken: string) {
+//   try {
+//     const res = await fetch(`${API_URL}/refresh`, {
+//       method: "POST",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify({ refresh_token: refreshToken }),
+//     });
 
-    if (!res.ok) return null;
+//     if (!res.ok) return null;
 
-    const data: LoginResp = await res.json();
-    const c = await cookies();
-    const expiresAt = Date.now() + data.expires_in * 1000;
+//     const data: LoginResp = await res.json();
+//     const c = await cookies();
+//     const expiresAt = Date.now() + data.expires_in * 1000;
 
-    c.set("access_token", data.access_token, {
-      ...cookieBase,
-      maxAge: data.expires_in,
-    });
-    c.set("expires_at", String(expiresAt), {
-      ...cookieBase,
-      maxAge: data.expires_in,
-    });
+//     c.set("access_token", data.access_token, {
+//       ...cookieBase,
+//       maxAge: data.expires_in,
+//     });
+//     c.set("expires_at", String(expiresAt), {
+//       ...cookieBase,
+//       maxAge: data.expires_in,
+//     });
 
-    return data.access_token;
-  } catch (err) {
-    console.error("Refresh failed:", err);
-    return null;
-  }
-}
+//     return data.access_token;
+//   } catch (err) {
+//     console.error("Refresh failed:", err);
+//     return null;
+//   }
+// }

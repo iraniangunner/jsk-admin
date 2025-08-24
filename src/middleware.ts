@@ -3,6 +3,20 @@ import { type NextRequest, NextResponse } from "next/server";
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 const THRESHOLD_MS = 5 * 60 * 1000; // ۵ دقیقه قبل از انقضا
 
+// const cookieBase = {
+//   httpOnly: true,
+//   sameSite: "lax" as const,
+//   path: "/",
+//   secure: true, // روی هاست: true
+//   domain: ".jsk-co.com",
+// };
+
+const cookieBase = {
+  httpOnly: true,
+  sameSite: "lax" as const,
+  path: "/",
+};
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
@@ -25,7 +39,10 @@ export async function middleware(req: NextRequest) {
 
   // جلوگیری از کش صفحات حساس
   if (pathname === "/" || pathname === "/login") {
-    res.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    res.headers.set(
+      "Cache-Control",
+      "no-store, no-cache, must-revalidate, proxy-revalidate"
+    );
     res.headers.set("Pragma", "no-cache");
     res.headers.set("Expires", "0");
   }
@@ -53,16 +70,16 @@ export async function middleware(req: NextRequest) {
 
       const expiresAt = Date.now() + data.expires_in * 1000;
 
+      res.cookies.delete("access_token");
+      res.cookies.delete("expires_at");
+
       res.cookies.set("access_token", data.access_token, {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
+        ...cookieBase,
         maxAge: data.expires_in,
       });
+
       res.cookies.set("expires_at", String(expiresAt), {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
+        ...cookieBase,
         maxAge: data.expires_in,
       });
 

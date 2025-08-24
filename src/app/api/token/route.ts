@@ -1,14 +1,15 @@
-import { cookies } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("access_token")?.value;
+export async function GET(req: NextRequest) {
+  const accessToken = req.cookies.get("access_token")?.value;
+  const expiresAt = req.cookies.get("expires_at")
+    ? Number(req.cookies.get("expires_at")?.value)
+    : 0;
+  const now = Date.now();
 
-  if (!token) {
-    return new Response(JSON.stringify({ error: "No token found" }), {
-      status: 401,
-    });
+  if (accessToken && expiresAt > now) {
+    return NextResponse.json({ token: accessToken });
   }
 
-  return Response.json({ token });
+  return NextResponse.json({ error: "No valid token" }, { status: 401 });
 }

@@ -17,7 +17,6 @@ const cookieBase = {
 //   domain: ".jsk-co.com",
 // };
 
-type LoginInput = { email: string; password: string };
 type LoginResp = {
   access_token: string;
   refresh_token: string;

@@ -1,24 +1,25 @@
-export const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
-  const tokenRes = await fetch("/api/token", { cache: "no-store" });
-  if (!tokenRes.ok) throw new Error("No token found");
+// lib/fetchWithAuth.ts
+import api from "./api";
 
-  const { token } = await tokenRes.json();
+export const fetchWithAuth = async (url: string, options: any = {}) => {
+  const method = (options.method || "GET").toLowerCase();
   const isFormData = options.body instanceof FormData;
 
-  const response = await fetch(url, {
-    ...options,
+  const config = {
     headers: {
       ...(options.headers || {}),
-      Authorization: `Bearer ${token}`,
       ...(isFormData ? {} : { "Content-Type": "application/json" }),
     },
-  });
+  };
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(errorText || "Request failed");
+  switch (method) {
+    case "post":
+      return api.post(url, options.body, config).then(res => res.data);
+    case "put":
+      return api.put(url, options.body, config).then(res => res.data);
+    case "delete":
+      return api.delete(url, config).then(res => res.data);
+    default:
+      return api.get(url, config).then(res => res.data);
   }
-
-  if (response.status === 204) return;
-  return response.json();
 };

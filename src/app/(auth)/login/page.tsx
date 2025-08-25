@@ -1,12 +1,12 @@
 "use client";
-import { useActionState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { loginAction } from "@/app/_actions/login-action";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Loader2, LogIn } from "lucide-react";
+import ReCAPTCHA from "react-google-recaptcha";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -30,6 +30,8 @@ export default function LoginPage() {
   });
 
   const router = useRouter();
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
+  const [token, setToken] = useState("");
 
   useEffect(() => {
     if (state?.isSuccess) {
@@ -48,14 +50,22 @@ export default function LoginPage() {
         <div className="space-y-1">
           <label className="text-sm font-medium">نام کاربری</label>
           <Input type="email" name="email" required />
-          {/* {state?.errors?.email && <p className="text-xs text-red-500">{state.errors.email}</p>} */}
         </div>
 
         <div className="space-y-1">
           <label className="text-sm font-medium">رمز عبور</label>
           <Input type="password" name="password" required />
-          {/* {state?.errors?.password && <p className="text-xs text-red-500">{state.errors.password}</p>} */}
         </div>
+
+        {/* ✅ reCAPTCHA */}
+        <ReCAPTCHA
+          sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!}
+          ref={recaptchaRef}
+          onChange={(value:any) => setToken(value || "")}
+        />
+
+        {/* 🔑 hidden input برای ارسال توکن به سرور */}
+        <input type="hidden" name="g-recaptcha-response" value={token} />
 
         <SubmitButton />
 

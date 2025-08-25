@@ -3,6 +3,8 @@
 import { cookies } from "next/headers";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
+const RECAPTCHA_SECRET = process.env.NEXT_PUBLIC_RECAPTCHA_SECRET_KEY!;
+
 const cookieBase = {
   httpOnly: true,
   sameSite: "lax" as const,
@@ -26,12 +28,35 @@ type LoginResp = {
 export async function loginAction(prevState: any, formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
+  const token = formData.get("g-recaptcha-response") as string;
 
   // Basic validation
   if (!email || !password) {
     return { isSuccess: false, error: "نام کاربری و رمز عبور را وارد کنید" };
   }
 
+  if (!token) {
+    return { isSuccess: false, error: "لطفا reCAPTCHA را تکمیل کنید" };
+  }
+
+  // ✅ مرحله اول: بررسی reCAPTCHA
+  try {
+    const verifyRes = await fetch("https://www.google.com/recaptcha/api/siteverify", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: `secret=${RECAPTCHA_SECRET}&response=${token}`,
+    });
+
+    const verifyData = await verifyRes.json();
+
+    if (!verifyData.success) {
+      return { isSuccess: false, error: "تأیید reCAPTCHA ناموفق بود" };
+    }
+  } catch (err) {
+    return { isSuccess: false, error: "خطا در بررسی reCAPTCHA" };
+  }
+
+  // ✅ مرحله دوم: لاگین به API
   try {
     const res = await fetch(`${API_URL}/login`, {
       method: "POST",
@@ -40,7 +65,7 @@ export async function loginAction(prevState: any, formData: FormData) {
     });
 
     if (!res.ok) {
-      return { isSuccess: false, error: "Invalid credentials" };
+      return { isSuccess: false, error: "ایمیل یا رمز عبور اشتباه است" };
     }
 
     const data = (await res.json()) as LoginResp;
@@ -55,7 +80,7 @@ export async function loginAction(prevState: any, formData: FormData) {
     });
     c.set("refresh_token", data.refresh_token, {
       ...cookieBase,
-      maxAge: 7 * 24 * 60 * 60,
+      maxAge: 7 * 24 * 60 * 60, // ۷ روز
     });
     c.set("expires_at", String(expiresAt), {
       ...cookieBase,
@@ -67,34 +92,3 @@ export async function loginAction(prevState: any, formData: FormData) {
     return { isSuccess: false, error: "Login failed" };
   }
 }
-
-// // تابع کمکی refresh token
-// export async function refreshAccessToken(refreshToken: string) {
-//   try {
-//     const res = await fetch(`${API_URL}/refresh`, {
-//       method: "POST",
-//       headers: { "Content-Type": "application/json" },
-//       body: JSON.stringify({ refresh_token: refreshToken }),
-//     });
-
-//     if (!res.ok) return null;
-
-//     const data: LoginResp = await res.json();
-//     const c = await cookies();
-//     const expiresAt = Date.now() + data.expires_in * 1000;
-
-//     c.set("access_token", data.access_token, {
-//       ...cookieBase,
-//       maxAge: data.expires_in,
-//     });
-//     c.set("expires_at", String(expiresAt), {
-//       ...cookieBase,
-//       maxAge: data.expires_in,
-//     });
-
-//     return data.access_token;
-//   } catch (err) {
-//     console.error("Refresh failed:", err);
-//     return null;
-//   }
-// }

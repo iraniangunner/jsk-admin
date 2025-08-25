@@ -17,10 +17,37 @@ export async function logoutAction(prevState: any, formData: FormData) {
       },
     });
 
+    const domain =
+      process.env.NODE_ENV === "production" ? ".jsk-co.com" : undefined;
+
     if (res.ok) {
-      c.delete("access_token");
-      c.delete("refresh_token");
-      c.delete("expires_at");
+      c.set({
+        name: "access_token",
+        value: "",
+        path: "/",
+        domain,
+        expires: new Date(0),
+        secure: process.env.NODE_ENV === "production",
+        httpOnly: true,
+      });
+      c.set({
+        name: "refresh_token",
+        value: "",
+        path: "/",
+        domain,
+        expires: new Date(0),
+        secure: process.env.NODE_ENV === "production",
+        httpOnly: true,
+      });
+      c.set({
+        name: "expires_at",
+        value: "",
+        path: "/",
+        domain,
+        expires: new Date(0),
+        secure: process.env.NODE_ENV === "production",
+        httpOnly: true,
+      });
       return { isSuccess: true, error: "" };
     }
     return { isSuccess: false, error: "Logout failed" };

@@ -20,11 +20,12 @@ export async function POST() {
     return new Response(JSON.stringify(data), { status: res.status });
   }
 
-  // بروز رسانی cookie ها
+ // بروز رسانی cookie ها
   const cookieBase = {
     httpOnly: true,
     sameSite: "lax" as const,
     path: "/",
+    secure: false,
   };
 
 //   const cookieBase = {

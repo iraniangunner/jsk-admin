@@ -9,6 +9,7 @@ const cookieBase = {
   httpOnly: true,
   sameSite: "lax" as const,
   path: "/",
+  secure: false,
 };
 
 // const cookieBase = {
@@ -41,11 +42,14 @@ export async function loginAction(prevState: any, formData: FormData) {
 
   // ✅ مرحله اول: بررسی reCAPTCHA
   try {
-    const verifyRes = await fetch("https://www.google.com/recaptcha/api/siteverify", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: `secret=${RECAPTCHA_SECRET}&response=${token}`,
-    });
+    const verifyRes = await fetch(
+      "https://www.google.com/recaptcha/api/siteverify",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `secret=${RECAPTCHA_SECRET}&response=${token}`,
+      }
+    );
 
     const verifyData = await verifyRes.json();
 

@@ -8,7 +8,6 @@ export interface JobOpportunity {
   text_en?: string;
   created_at?: string;
   updated_at?: string;
-  // Add other fields that your API returns
   job_category?: {
     id: number;
     title: string;
@@ -44,7 +43,5 @@ export interface JobOpportunityFilters {
   city_id?: number;
   title?: string;
   title_en?: string;
-  // page?: number
-  // per_page?: number
 }
 

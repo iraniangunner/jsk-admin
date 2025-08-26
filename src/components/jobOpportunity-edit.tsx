@@ -1,7 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2, ArrowLeft } from "lucide-react";
@@ -70,6 +70,7 @@ export default function JobOpportunityEdit() {
     watch,
     setValue,
     reset,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<JobOpportunityFormData>({
     resolver: zodResolver(jobOpportunitySchema),
@@ -345,37 +346,50 @@ export default function JobOpportunityEdit() {
               {/* Basic Information */}
               <div className="grid gap-4">
                 <div className="grid md:grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="title" className="required mb-2">
-                      عنوان شغل (فارسی)
-                    </Label>
-                    <Input
-                      id="title"
-                      {...register("title")}
-                      placeholder="عنوان شغل را وارد کنید"
-                    />
-                    {errors.title && (
-                      <p className="text-sm text-red-500">
-                        {errors.title.message}
-                      </p>
+                  <Controller
+                    name="title"
+                    control={control}
+                    render={({ field }) => (
+                      <div className="grid gap-2">
+                        <Label htmlFor="title" className="required mb-2">
+                          عنوان شغل (فارسی)
+                        </Label>
+                        <Input
+                          id="title"
+                          placeholder="عنوان شغل را وارد کنید"
+                          {...field}
+                        />
+                        {errors.title && (
+                          <p className="text-sm text-red-500">
+                            {errors.title.message}
+                          </p>
+                        )}
+                      </div>
                     )}
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="title_en" className="mb-2">
-                      عنوان شغل (انگلیسی)
-                    </Label>
-                    <Input
-                      dir="ltr"
-                      id="title_en"
-                      {...register("title_en")}
-                      placeholder="Job Title (optional)"
-                    />
-                    {errors.title_en && (
-                      <p className="text-sm text-red-500">
-                        {errors.title_en.message}
-                      </p>
+                  />
+
+                  <Controller
+                    name="title_en"
+                    control={control}
+                    render={({ field }) => (
+                      <div className="grid gap-2">
+                        <Label htmlFor="title_en" className="mb-2">
+                          عنوان شغل (انگلیسی)
+                        </Label>
+                        <Input
+                          id="title_en"
+                          dir="ltr"
+                          placeholder="Job Title (optional)"
+                          {...field}
+                        />
+                        {errors.title_en && (
+                          <p className="text-sm text-red-500">
+                            {errors.title_en.message}
+                          </p>
+                        )}
+                      </div>
                     )}
-                  </div>
+                  />
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
@@ -440,14 +454,27 @@ export default function JobOpportunityEdit() {
                   <h3 className="text-lg font-semibold">محتوای فارسی</h3>
 
                   <div className="grid gap-2">
-                    <Label htmlFor="description_fa" className="mb-2">
-                      توضیحات شغل
-                    </Label>
-                    <Textarea
-                      id="description_fa"
-                      {...register("persian_content.description")}
-                      placeholder="توضیحات کلی شغل..."
-                      rows={3}
+                    <Controller
+                      name="persian_content.description"
+                      control={control}
+                      render={({ field }) => (
+                        <div className="grid gap-2">
+                          <Label htmlFor="description_fa" className="mb-2">
+                            توضیحات شغل
+                          </Label>
+                          <Textarea
+                            id="description_fa"
+                            placeholder="توضیحات کلی شغل..."
+                            rows={3}
+                            {...field} // اتصال به فرم
+                          />
+                          {errors.persian_content?.description && (
+                            <p className="text-sm text-red-500">
+                              {errors.persian_content.description.message}
+                            </p>
+                          )}
+                        </div>
+                      )}
                     />
                   </div>
 
@@ -531,15 +558,28 @@ export default function JobOpportunityEdit() {
                   <h3 className="text-lg font-semibold">English Content</h3>
 
                   <div className="grid gap-2">
-                    <Label htmlFor="description_en" className="mb-2">
-                      Job Description
-                    </Label>
-                    <Textarea
-                      dir="ltr"
-                      id="description_en"
-                      {...register("english_content.description")}
-                      placeholder="Brief job description..."
-                      rows={3}
+                    <Controller
+                      name="english_content.description"
+                      control={control}
+                      render={({ field }) => (
+                        <div className="grid gap-2">
+                          <Label htmlFor="description_en" className="mb-2">
+                            Job Description
+                          </Label>
+                          <Textarea
+                            dir="ltr"
+                            id="description_en"
+                            placeholder="Brief job description..."
+                            rows={3}
+                            {...field} // اتصال به فرم
+                          />
+                          {errors.english_content?.description && (
+                            <p className="text-sm text-red-500">
+                              {errors.english_content.description.message}
+                            </p>
+                          )}
+                        </div>
+                      )}
                     />
                   </div>
 

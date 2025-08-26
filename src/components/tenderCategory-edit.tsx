@@ -1,12 +1,12 @@
 "use client";
 import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Loader2, ArrowLeft } from "lucide-react";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { Loader2, ArrowLeft } from "lucide-react";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -18,16 +18,19 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { getJobCategoryById, updateJobCategory } from "@/hooks/use-jobCategory";
+import {
+  getTenderCategoryById,
+  updateTenderCategory,
+} from "@/hooks/use-tenderCategory";
 
-const jobCategorySchema = z.object({
+const tenderCategorySchema = z.object({
   title: z
     .string()
     .min(1, "عنوان فارسی الزامی است")
-    .max(64, "عنوان فارسی نباید بیش از 64 کاراکتر باشد"),
+    .max(64, "عنوان فارسی نباید بیشتر از 64 کاراکتر باشد"),
   title_en: z
     .string()
-    .max(64, "عنوان انگلیسی نباید بیش از 64 کاراکتر باشد")
+    .max(64, "عنوان انگلیسی نباید بیشتر از 64 کاراکتر باشد")
     .optional()
     .or(z.literal("")),
   order: z
@@ -40,14 +43,14 @@ const jobCategorySchema = z.object({
         return !isNaN(num) && num > 0 && num <= 255;
       },
       {
-        message: "ترتیب باید عددی بین 1 تا 255 باشد",
+        message: "ترتیب نمایش باید بین 1 تا 255 باشد",
       }
     ),
 });
 
-type JobCategoryFormData = z.infer<typeof jobCategorySchema>;
+type TenderCategoryFormData = z.infer<typeof tenderCategorySchema>;
 
-export function EditJobCategory() {
+export function EditTenderCategory() {
   const router = useRouter();
   const params = useParams();
   const categoryId = params.id as string;
@@ -55,10 +58,10 @@ export function EditJobCategory() {
   const {
     control,
     handleSubmit,
-    reset,
     formState: { errors },
-  } = useForm<JobCategoryFormData>({
-    resolver: zodResolver(jobCategorySchema),
+    reset,
+  } = useForm<TenderCategoryFormData>({
+    resolver: zodResolver(tenderCategorySchema),
     defaultValues: {
       title: "",
       title_en: "",
@@ -66,23 +69,22 @@ export function EditJobCategory() {
     },
   });
 
-  const { data: jobCategory, isLoading: isLoadingJobCategory } =
-    getJobCategoryById(categoryId);
-
-  const { mutate: updateJobCategoryMutation, isPending: isSaving } =
-    updateJobCategory();
+  const { data: tenderCategory, isLoading: isLoadingCategory } =
+    getTenderCategoryById(categoryId);
+  const { mutate: updateTenderCategoryMutation, isPending: isSaving } =
+    updateTenderCategory();
 
   useEffect(() => {
-    if (jobCategory) {
+    if (tenderCategory) {
       reset({
-        title: jobCategory.title || "",
-        title_en: jobCategory.title_en || "",
-        order: jobCategory.order?.toString() || "",
+        title: tenderCategory.title || "",
+        title_en: tenderCategory.title_en || "",
+        order: tenderCategory.order?.toString() || "",
       });
     }
-  }, [jobCategory, reset]);
+  }, [tenderCategory, reset]);
 
-  const onSubmit = async (data: JobCategoryFormData) => {
+  const onSubmit = async (data: TenderCategoryFormData) => {
     try {
       const submitData = {
         title: data.title.trim(),
@@ -90,14 +92,12 @@ export function EditJobCategory() {
         order: data.order ? Number(data.order) : undefined,
       };
 
-      updateJobCategoryMutation(
+      updateTenderCategoryMutation(
         { id: categoryId, data: submitData },
         {
           onSuccess: () => {
             toast.success("دسته بندی با موفقیت به‌روزرسانی شد");
-            setTimeout(() => {
-              router.push("/job-categories");
-            }, 1500);
+            setTimeout(() => router.push("/tender-categories"), 1500);
           },
           onError: (error) => {
             console.error("Update failed:", error);
@@ -111,7 +111,7 @@ export function EditJobCategory() {
     }
   };
 
-  if (isLoadingJobCategory) {
+  if (isLoadingCategory) {
     return (
       <div className="container py-10 max-w-3xl mx-auto" dir="rtl">
         <div className="flex items-center justify-center min-h-[400px]">
@@ -122,7 +122,7 @@ export function EditJobCategory() {
     );
   }
 
-  if (!jobCategory) {
+  if (!tenderCategory) {
     return (
       <div className="container py-10 max-w-3xl mx-auto" dir="rtl">
         <Card>
@@ -131,7 +131,7 @@ export function EditJobCategory() {
             <Button
               variant="outline"
               className="mt-4 bg-transparent"
-              onClick={() => router.push("/job-categories")}
+              onClick={() => router.push("/tender-categories")}
             >
               بازگشت به لیست
             </Button>
@@ -150,7 +150,7 @@ export function EditJobCategory() {
           <Button
             variant="outline"
             className="cursor-pointer bg-transparent"
-            onClick={() => router.push("/job-categories")}
+            onClick={() => router.push("/tender-categories")}
           >
             <ArrowLeft className="ml-2 h-4 w-4" />
             بازگشت به لیست
@@ -166,91 +166,89 @@ export function EditJobCategory() {
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <div className="grid gap-4">
-                {/* عنوان فارسی */}
-                <div className="grid gap-2">
-                  <Label htmlFor="title" className="required mb-2">
-                    عنوان فارسی
-                  </Label>
-                  <Controller
-                    name="title"
-                    control={control}
-                    render={({ field }) => (
+                <Controller
+                  name="title"
+                  control={control}
+                  render={({ field }) => (
+                    <div className="grid gap-2">
+                      <Label htmlFor="title" className="required mb-2">
+                        عنوان فارسی
+                      </Label>
                       <Input
-                        {...field}
                         id="title"
                         placeholder="عنوان فارسی دسته بندی را وارد کنید"
+                        {...field}
                         className={errors.title ? "border-red-500" : ""}
                       />
-                    )}
-                  />
-                  {errors.title && (
-                    <p className="text-sm text-red-500 mt-1">
-                      {errors.title.message}
-                    </p>
+                      {errors.title && (
+                        <p className="text-sm text-red-500">
+                          {errors.title.message}
+                        </p>
+                      )}
+                    </div>
                   )}
-                </div>
+                />
 
-                {/* عنوان انگلیسی */}
-                <div className="grid gap-2">
-                  <Label htmlFor="title_en" className="mb-2">
-                    عنوان انگلیسی
-                  </Label>
-                  <Controller
-                    name="title_en"
-                    control={control}
-                    render={({ field }) => (
+                <Controller
+                  name="title_en"
+                  control={control}
+                  render={({ field }) => (
+                    <div className="grid gap-2">
+                      <Label htmlFor="title_en" className="mb-2">
+                        عنوان انگلیسی
+                      </Label>
                       <Input
-                        {...field}
                         id="title_en"
                         dir="ltr"
                         placeholder="Enter English title (optional)"
+                        {...field}
                         className={errors.title_en ? "border-red-500" : ""}
                       />
-                    )}
-                  />
-                  {errors.title_en && (
-                    <p className="text-sm text-red-500 mt-1">
-                      {errors.title_en.message}
-                    </p>
+                      {errors.title_en && (
+                        <p className="text-sm text-red-500">
+                          {errors.title_en.message}
+                        </p>
+                      )}
+                    </div>
                   )}
-                </div>
+                />
 
                 <Separator className="my-2" />
 
-                {/* ترتیب نمایش */}
-                <div className="grid gap-2">
-                  <Label htmlFor="order" className="mb-2">
-                    ترتیب نمایش
-                  </Label>
-                  <Controller
-                    name="order"
-                    control={control}
-                    render={({ field }) => (
+                <Controller
+                  name="order"
+                  control={control}
+                  render={({ field }) => (
+                    <div className="grid gap-2">
+                      <Label htmlFor="order" className="mb-2">
+                        ترتیب نمایش
+                      </Label>
                       <Input
-                        {...field}
                         id="order"
                         type="number"
                         placeholder="ترتیب نمایش (اختیاری)"
                         min={1}
                         max={255}
+                        {...field}
                         className={errors.order ? "border-red-500" : ""}
                       />
-                    )}
-                  />
-                  {errors.order && (
-                    <p className="text-sm text-red-500 mt-1">
-                      {errors.order.message}
-                    </p>
+                      {errors.order && (
+                        <p className="text-sm text-red-500">
+                          {errors.order.message}
+                        </p>
+                      )}
+                      <p className="text-sm text-muted-foreground">
+                        عدد کمتر، اولویت نمایش بالاتر
+                      </p>
+                    </div>
                   )}
-                  <p className="text-sm text-muted-foreground">
-                    عدد کمتر، اولویت نمایش بالاتر
-                  </p>
-                </div>
+                />
               </div>
             </form>
           </CardContent>
           <CardFooter className="flex justify-center">
             <Button
+              type="submit"
               onClick={handleSubmit(onSubmit)}
               disabled={isSaving}
               className="cursor-pointer px-8 py-2"

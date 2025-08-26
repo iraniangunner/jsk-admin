@@ -62,9 +62,6 @@ export const updateProjectCategoryById = async ({
     {
       method: "PUT",
       body: JSON.stringify(data),
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
     }
   );
 };
@@ -77,9 +74,6 @@ export const createNewProjectCategory = async ({
   return await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/categories`, {
     method: "POST",
     body: JSON.stringify(data),
-    // headers: {
-    //   "Content-Type": "application/json",
-    // },
   });
 };
 

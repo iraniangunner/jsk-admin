@@ -1,7 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2, ArrowLeft } from "lucide-react";
@@ -56,11 +56,10 @@ export function EditProjectCategory() {
   const categoryId = params.id as string;
 
   const {
-    register,
+    control,
     handleSubmit,
-    formState: { errors },
     reset,
-    setValue,
+    formState: { errors },
   } = useForm<ProjectCategoryFormData>({
     resolver: zodResolver(projectCategorySchema),
     defaultValues: {
@@ -70,9 +69,9 @@ export function EditProjectCategory() {
     },
   });
 
-  // Queries and mutations
   const { data: projectCategory, isLoading: isLoadingProjectCategory } =
     getProjectCategoryById(categoryId);
+
   const { mutate: updateProjectCategoryMutation, isPending: isSaving } =
     updateProjectCategory();
 
@@ -88,20 +87,17 @@ export function EditProjectCategory() {
 
   const onSubmit = async (data: ProjectCategoryFormData) => {
     try {
-      // Prepare data object
       const submitData = {
         title: data.title.trim(),
         title_en: data.title_en?.trim() || undefined,
         order: data.order ? Number(data.order) : undefined,
       };
 
-      // Call the update mutation
       updateProjectCategoryMutation(
         { id: categoryId, data: submitData },
         {
           onSuccess: () => {
             toast.success("دسته بندی با موفقیت به‌روزرسانی شد");
-            // Navigate back to project categories list after successful update
             setTimeout(() => {
               router.push("/project-categories");
             }, 1500);
@@ -173,15 +169,22 @@ export function EditProjectCategory() {
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <div className="grid gap-4">
+                {/* عنوان فارسی */}
                 <div className="grid gap-2">
                   <Label htmlFor="title" className="required mb-2">
                     عنوان فارسی
                   </Label>
-                  <Input
-                    id="title"
-                    {...register("title")}
-                    placeholder="عنوان فارسی دسته بندی را وارد کنید"
-                    className={errors.title ? "border-red-500" : ""}
+                  <Controller
+                    name="title"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        id="title"
+                        placeholder="عنوان فارسی دسته بندی را وارد کنید"
+                        className={errors.title ? "border-red-500" : ""}
+                      />
+                    )}
                   />
                   {errors.title && (
                     <p className="text-sm text-red-500">
@@ -190,16 +193,23 @@ export function EditProjectCategory() {
                   )}
                 </div>
 
+                {/* عنوان انگلیسی */}
                 <div className="grid gap-2">
                   <Label htmlFor="title_en" className="mb-2">
                     عنوان انگلیسی
                   </Label>
-                  <Input
-                    dir="ltr"
-                    id="title_en"
-                    {...register("title_en")}
-                    placeholder="Enter English title (optional)"
-                    className={errors.title_en ? "border-red-500" : ""}
+                  <Controller
+                    name="title_en"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        id="title_en"
+                        dir="ltr"
+                        placeholder="Enter English title (optional)"
+                        className={errors.title_en ? "border-red-500" : ""}
+                      />
+                    )}
                   />
                   {errors.title_en && (
                     <p className="text-sm text-red-500">
@@ -210,18 +220,25 @@ export function EditProjectCategory() {
 
                 <Separator className="my-2" />
 
+                {/* ترتیب نمایش */}
                 <div className="grid gap-2">
                   <Label htmlFor="order" className="mb-2">
                     ترتیب نمایش
                   </Label>
-                  <Input
-                    id="order"
-                    type="number"
-                    {...register("order")}
-                    placeholder="ترتیب نمایش (اختیاری)"
-                    min="1"
-                    max="255"
-                    className={errors.order ? "border-red-500" : ""}
+                  <Controller
+                    name="order"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        id="order"
+                        type="number"
+                        placeholder="ترتیب نمایش (اختیاری)"
+                        min={1}
+                        max={255}
+                        className={errors.order ? "border-red-500" : ""}
+                      />
+                    )}
                   />
                   {errors.order && (
                     <p className="text-sm text-red-500">
@@ -237,7 +254,6 @@ export function EditProjectCategory() {
           </CardContent>
           <CardFooter className="flex justify-center">
             <Button
-              type="submit"
               onClick={handleSubmit(onSubmit)}
               disabled={isSaving}
               className="cursor-pointer px-8 py-2"

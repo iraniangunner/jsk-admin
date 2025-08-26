@@ -90,42 +90,6 @@ export const createNewProject = async ({
 
 
 
-// export const createNewProject = async (formData: FormData) => {
-//   try {
-//     // دریافت توکن از API داخلی خودت
-//     // const tokenRes = await fetch("/api/token", { cache: "no-store" });
-//     // if (!tokenRes.ok) throw new Error("No token found");
-//     // const { token } = await tokenRes.json();
-
-//     // ارسال request
-//     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects`, {
-//       method: "POST",
-//       body: formData, // ⚠️ هیچ Content-Type دستی قرار نده
-//       // headers: {
-//       //   Authorization: `Bearer ${token}`,
-//       // },
-//       // redirect: "manual", // جلوگیری از ری‌دایرکت خودکار مرورگر
-//     });
-
-//     // اگر status 302 یا 307 بود، مشخصاً توکن یا مسیر مشکل داره
-//     if (response.status === 302 || response.status === 307) {
-//       const location = response.headers.get("Location");
-//       throw new Error(`Redirected to ${location}. احتمالا توکن نامعتبر است.`);
-//     }
-
-//     if (!response.ok) {
-//       const text = await response.text();
-//         console.log(text)
-//       throw new Error(text || "خطا در ارسال پروژه");
-//     }
-
-//     return await response.json();
-//   } catch (err) {
-//     console.error("Error creating project:", err);
-//     throw err;
-//   }
-// };
-
 
 export const getProjectById = (id: string) => {
   return useQuery({

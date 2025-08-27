@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState} from "react";
 import { CaretSortIcon } from "@radix-ui/react-icons";
 import {
   type ColumnDef,

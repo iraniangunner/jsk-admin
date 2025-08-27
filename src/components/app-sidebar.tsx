@@ -87,12 +87,12 @@ const sidebarItems: SidebarItemType[] = [
     href: "/job-opportunities",
   },
   {
-    title: "دسته بندی مناقصات",
+    title: "دسته بندی فراخوان ها",
     icon: HelpCircle,
     href: "/tender-categories",
   },
   {
-    title: "مناقصات",
+    title: "فراخوان ها",
     icon: HelpCircle,
     href: "/tenders",
   },

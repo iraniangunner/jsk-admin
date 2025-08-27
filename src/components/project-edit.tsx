@@ -337,7 +337,7 @@ export function EditProject() {
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="title">عنوان *</Label>
+                  <Label htmlFor="title" className="mb-2">عنوان *</Label>
                   <Controller
                     name="title"
                     control={control}
@@ -348,7 +348,7 @@ export function EditProject() {
                   {errors.title && <p className="text-sm text-red-500 mt-1">{errors.title.message}</p>}
                 </div>
                 <div>
-                  <Label htmlFor="title_en">عنوان (EN)</Label>
+                  <Label htmlFor="title_en" className="mb-2">عنوان (EN)</Label>
                   <Controller
                     name="title_en"
                     control={control}
@@ -356,7 +356,7 @@ export function EditProject() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="employer">کارفرما *</Label>
+                  <Label htmlFor="employer" className="mb-2">کارفرما *</Label>
                   <Controller
                     name="employer"
                     control={control}
@@ -367,7 +367,7 @@ export function EditProject() {
                   {errors.employer && <p className="text-sm text-red-500 mt-1">{errors.employer.message}</p>}
                 </div>
                 <div>
-                  <Label htmlFor="employer_en">کارفرما (EN)</Label>
+                  <Label htmlFor="employer_en" className="mb-2">کارفرما (EN)</Label>
                   <Controller
                     name="employer_en"
                     control={control}
@@ -375,7 +375,7 @@ export function EditProject() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="start_date">تاریخ شروع *</Label>
+                  <Label htmlFor="start_date" className="mb-2">تاریخ شروع *</Label>
                   <Controller
                     name="start_date"
                     control={control}
@@ -391,7 +391,7 @@ export function EditProject() {
                   {errors.start_date && <p className="text-sm text-red-500 mt-1">{errors.start_date.message}</p>}
                 </div>
                 <div>
-                  <Label htmlFor="location">مکان *</Label>
+                  <Label htmlFor="location" className="mb-2">مکان *</Label>
                   <Controller
                     name="location"
                     control={control}
@@ -402,7 +402,7 @@ export function EditProject() {
                   {errors.location && <p className="text-sm text-red-500 mt-1">{errors.location.message}</p>}
                 </div>
                 <div>
-                  <Label htmlFor="location_en">مکان (EN)</Label>
+                  <Label htmlFor="location_en" className="mb-2">مکان (EN)</Label>
                   <Controller
                     name="location_en"
                     control={control}
@@ -413,7 +413,7 @@ export function EditProject() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="text">توضیحات *</Label>
+                  <Label htmlFor="text" className="mb-2">توضیحات *</Label>
                   <Controller
                     name="text"
                     control={control}
@@ -428,7 +428,7 @@ export function EditProject() {
                   {errors.text && <p className="text-sm text-red-500 mt-1">{errors.text.message}</p>}
                 </div>
                 <div>
-                  <Label htmlFor="text_en">توضیحات (EN)</Label>
+                  <Label htmlFor="text_en" className="mb-2">توضیحات (EN)</Label>
                   <Controller
                     name="text_en"
                     control={control}
@@ -439,7 +439,7 @@ export function EditProject() {
 
               {/* دسته‌بندی‌ها */}
               <div>
-                <Label>دسته‌بندی‌ها *</Label>
+                <Label className="mb-2">دسته‌بندی‌ها *</Label>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
                   {categories?.map((cat: any) => {
                     const checked = selectedCategories?.includes(cat.id) || false

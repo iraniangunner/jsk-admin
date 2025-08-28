@@ -6,7 +6,6 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 // axios instance
 const api = axios.create({
   baseURL: API_URL,
- // withCredentials: true, // 👈 برای اینکه کوکی‌ها (refresh_token) ارسال بشن
 });
 
 // Flag برای جلوگیری از لوپ بی‌نهایت
@@ -24,21 +23,6 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = [];
 };
 
-// Request interceptor (برای افزودن access_token)
-// api.interceptors.request.use(
-//   async (config) => {
-//     // از API خودت توکن رو بخون
-//     const tokenRes = await fetch("/api/token", { cache: "no-store" });
-//     if (tokenRes.ok) {
-//       const { token } = await tokenRes.json();
-//       if (token) {
-//         config.headers["Authorization"] = `Bearer ${token}`;
-//       }
-//     }
-//     return config;
-//   },
-//   (error) => Promise.reject(error)
-// );
 
 // Response interceptor (برای هندل کردن 401)
 api.interceptors.response.use(
@@ -88,11 +72,5 @@ api.interceptors.response.use(
   }
 );
 
-// تابع برای گرفتن refresh_token از کوکی
-function getRefreshTokenFromCookie(): string | null {
-  if (typeof document === "undefined") return null;
-  const match = document.cookie.match(/(^| )refresh_token=([^;]+)/);
-  return match ? decodeURIComponent(match[2]) : null;
-}
 
 export default api;

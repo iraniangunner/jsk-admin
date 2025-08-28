@@ -6,15 +6,15 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
 export async function logoutAction(prevState: any, formData: FormData) {
   const c = await cookies();
-  const accessToken = c.get("access_token")?.value;
+  const refreshToken = c.get("refresh_token")?.value;
 
   try {
     const res = await fetch(`${API_URL}/logout`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       },
+      body: JSON.stringify({ refresh_token: refreshToken }),
     });
 
     const domain =

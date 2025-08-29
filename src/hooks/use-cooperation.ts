@@ -22,7 +22,7 @@ export const fetchCooperations = async (
     queryParams.set("title", params.title);
   }
 
-  const response = await fetch(
+  return await fetchWithAuth(
     `${
       process.env.NEXT_PUBLIC_API_URL
     }/companies-cooperation?${queryParams.toString()}`,
@@ -31,12 +31,6 @@ export const fetchCooperations = async (
       cache: "no-store",
     }
   );
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch cooperations");
-  }
-
-  return response.json();
 };
 
 export const deleteCooperationById = async (id: number): Promise<void> => {

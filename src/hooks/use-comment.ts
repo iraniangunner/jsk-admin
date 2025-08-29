@@ -18,19 +18,13 @@ export const fetchComments = async (
     queryParams.set("title", params.title);
   }
 
-  const response = await fetch(
+  return await fetchWithAuth(
     `${process.env.NEXT_PUBLIC_API_URL}/comments?${queryParams.toString()}`,
     {
       method: "GET",
       cache: "no-store",
     }
   );
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch comments");
-  }
-
-  return response.json();
 };
 
 export const deleteCommentById = async (id: number): Promise<void> => {

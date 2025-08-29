@@ -22,19 +22,13 @@ export const fetchResumes = async (
     queryParams.set("title", params.title);
   }
 
-  const response = await fetch(
+  return await fetchWithAuth(
     `${process.env.NEXT_PUBLIC_API_URL}/resumes?${queryParams.toString()}`,
     {
       method: "GET",
       cache: "no-store",
     }
   );
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch resumes");
-  }
-
-  return response.json();
 };
 
 export const deleteResumeById = async (id: number): Promise<void> => {

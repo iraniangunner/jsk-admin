@@ -3,6 +3,7 @@ import {
   CooperationSearchParams,
   Cooperation,
   PaginatedCooperationResponse,
+  CooperationResponse,
 } from "@/types/cooperation-types";
 import { useQuery } from "@tanstack/react-query";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
@@ -33,6 +34,26 @@ export const fetchCooperations = async (
   );
 };
 
+// export async function fetchCooperationById(id: string) {
+//   return await fetchWithAuth(
+//     ` ${process.env.NEXT_PUBLIC_API_URL}/companies-cooperation/${id}`,
+//     {
+//       method: "GET",
+//       cache: "no-store",
+//     }
+//   );
+// }
+
+export const fetchCooperationById = async (id: string): Promise<CooperationResponse> => {
+  return await fetchWithAuth(
+    `${process.env.NEXT_PUBLIC_API_URL}/companies-cooperation/${id}`,
+    {
+      method: "GET",
+      cache: "no-store",
+    }
+  );
+};
+
 export const deleteCooperationById = async (id: number): Promise<void> => {
   return await fetchWithAuth(
     `${process.env.NEXT_PUBLIC_API_URL}/companies-cooperation/${id}`,
@@ -47,6 +68,14 @@ export const getCooperations = (params: CooperationSearchParams) => {
     queryKey: ["cooperations", params],
     queryFn: () => fetchCooperations(params),
     enabled: !params?.title || (params.title?.length ?? 0) >= 2,
+  });
+};
+
+
+export const getCooperationById = (id: string) => {
+  return useQuery({
+    queryKey: ["cooperation"],
+    queryFn: () => fetchCooperationById(id),
   });
 };
 

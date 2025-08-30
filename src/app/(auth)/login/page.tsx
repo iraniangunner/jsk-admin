@@ -45,7 +45,7 @@ export default function LoginPage() {
         action={formAction}
         className="bg-white p-8 rounded-2xl shadow w-full max-w-md space-y-5"
       >
-        <h1 className="text-2xl font-bold text-center">ورود به پنل ادمین</h1>
+        <h1 className="text-2xl font-bold text-center">ورود به پنل کاربری</h1>
 
         <div className="space-y-1">
           <label className="text-sm font-medium">نام کاربری</label>

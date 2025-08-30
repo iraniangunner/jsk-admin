@@ -3,6 +3,7 @@ import {
   ResumeSearchParams,
   Resume,
   PaginatedResumeResponse,
+  ResumeResponse,
 } from "@/types/resume-types";
 import { useQuery } from "@tanstack/react-query";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
@@ -31,6 +32,17 @@ export const fetchResumes = async (
   );
 };
 
+
+export const fetchResumeById = async (id: string): Promise<ResumeResponse> => {
+  return await fetchWithAuth(
+    `${process.env.NEXT_PUBLIC_API_URL}/resumes/${id}`,
+    {
+      method: "GET",
+      cache: "no-store",
+    }
+  );
+};
+
 export const deleteResumeById = async (id: number): Promise<void> => {
   return await fetchWithAuth(
     `${process.env.NEXT_PUBLIC_API_URL}/resumes/${id}`,
@@ -47,6 +59,14 @@ export const getResumes = (params: ResumeSearchParams) => {
     enabled: !params?.title || (params.title?.length ?? 0) >= 2,
   });
 };
+
+export const getResumeById = (id: string) => {
+  return useQuery({
+    queryKey: ["resume"],
+    queryFn: () => fetchResumeById(id),
+  });
+};
+
 
 export const deleteResume = () => {
   const queryClient = useQueryClient();

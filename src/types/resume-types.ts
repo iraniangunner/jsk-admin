@@ -16,6 +16,26 @@ export interface Resume {
   created_at: string;
 }
 
+export interface ResumeResponse {
+  data: {
+    id: number;
+    name: string;
+    birthday: string;
+    gender: string;
+    marital: string;
+    degree: string;
+    military: string;
+    university: string;
+    major: string;
+    experience: string;
+    email: string;
+    file: string;
+    full_path: string;
+    text: string;
+    created_at: string;
+  };
+}
+
 export interface ResumeSearchParams {
   page?: number;
   per_page?: number;

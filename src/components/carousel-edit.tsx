@@ -163,9 +163,6 @@ export default function EditCarousel() {
         </div>
         <p className="mb-6">{error || "اسلاید مورد نظر یافت نشد."}</p>
         <Button
-          onClick={() =>
-            toast.info("در حالت نمایشی، بازگشت به لیست غیرفعال است")
-          }
         >
           <ArrowLeft className="ml-2 h-4 w-4" />
           بازگشت به لیست اسلایدها

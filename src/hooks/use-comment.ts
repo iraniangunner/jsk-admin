@@ -1,6 +1,6 @@
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
-import { CommentSearchParams } from "@/types/comment-types";
+import { CommentSearchParams ,Comment } from "@/types/comment-types";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
 
 export const fetchComments = async (
@@ -27,6 +27,17 @@ export const fetchComments = async (
   );
 };
 
+
+export const fetchCommentById = async (id: string): Promise<Comment> => {
+  return await fetchWithAuth(
+    `${process.env.NEXT_PUBLIC_API_URL}/comments/${id}`,
+    {
+      method: "GET",
+      cache: "no-store",
+    }
+  );
+};
+
 export const deleteCommentById = async (id: number): Promise<void> => {
   return await fetchWithAuth(
     `${process.env.NEXT_PUBLIC_API_URL}/comments/${id}`,
@@ -43,6 +54,16 @@ export const getComments = (params: CommentSearchParams) => {
     enabled: !params?.title || (params.title?.length ?? 0) >= 2,
   });
 };
+
+
+export const getCommentById = (id: string) => {
+  return useQuery({
+    queryKey: ["comment"],
+    queryFn: () => fetchCommentById(id),
+  });
+};
+
+
 
 export const deleteComment = () => {
   const queryClient = useQueryClient();

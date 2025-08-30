@@ -1,5 +1,4 @@
 "use client";
-// import { formatDistanceToNow } from "date-fns";
 import {
   Card,
   CardContent,
@@ -21,11 +20,15 @@ import {
   Building,
   Clock,
   ChevronRight,
+  ArrowLeft,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
+import { getResumeById } from "@/hooks/use-resume";
+import { useParams } from "next/navigation";
 
 // Format date to a more readable format
-function formatDate(dateString: string) {
+function formatDate(dateString: any) {
   const date = new Date(dateString);
   return new Intl.DateTimeFormat("fa-IR", {
     year: "numeric",
@@ -36,18 +39,44 @@ function formatDate(dateString: string) {
   }).format(date);
 }
 
-export function ResumeDetails({ resume }: { resume: any }) {
-  // Handle file download
+export function ResumeDetails() {
+  const params = useParams();
+  const id = (params?.id as string) || "1";
+
+  const { data, isLoading, isError } = getResumeById(id);
+
   const handleDownload = () => {
-    window.open(resume.full_path, "_blank");
+    window.open(data?.data?.full_path, "_blank");
   };
 
-  const submissionDate = formatDate(resume.created_at);
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]" dir="rtl">
+        <div className="flex flex-col items-center gap-2">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p>در حال بارگذاری...</p>
+        </div>
+      </div>
+    );
+  }
 
-  // Calculate time since submission
-  //   const timeSinceSubmission = formatDistanceToNow(new Date(resume.created_at), {
-  //     addSuffix: true,
-  //   });
+  if (isError) {
+    return (
+      <div
+        className="flex flex-col items-center justify-center min-h-[60vh]"
+        dir="rtl"
+      >
+        <div className="text-destructive mb-4 text-xl">
+          خطا در بارگذاری اطلاعات
+        </div>
+        <p className="mb-6">"پیام مورد نظر یافت نشد.</p>
+        <Button>
+          <ArrowLeft className="ml-2 h-4 w-4" />
+          بازگشت به لیست پیام ها
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -61,11 +90,11 @@ export function ResumeDetails({ resume }: { resume: any }) {
           </div>
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div>
-              <CardTitle className="text-2xl">{resume.name}</CardTitle>
+              <CardTitle className="text-2xl">{data?.data?.name}</CardTitle>
               <CardDescription className="mt-1 text-base">
                 <div className="flex items-center gap-2">
                   <Mail className="h-4 w-4" />
-                  {resume.email}
+                  {data?.data?.email}
                 </div>
               </CardDescription>
             </div>
@@ -84,31 +113,31 @@ export function ResumeDetails({ resume }: { resume: any }) {
             <div className="flex items-center gap-2 text-sm">
               <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               <span className="text-muted-foreground">جنسیت:</span>
-              <span>{resume.gender}</span>
+              <span>{data?.data?.gender}</span>
             </div>
 
             <div className="flex items-center gap-2 text-sm">
               <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               <span className="text-muted-foreground">تاریخ تولد:</span>
-              <span>{resume.birthday}</span>
+              <span>{data?.data?.birthday}</span>
             </div>
 
             <div className="flex items-center gap-2 text-sm">
               <Users className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               <span className="text-muted-foreground">وضعیت تاهل:</span>
-              <span>{resume.marital}</span>
+              <span>{data?.data?.marital}</span>
             </div>
 
             <div className="flex items-center gap-2 text-sm">
               <Shield className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               <span className="text-muted-foreground">وضعیت نظام وظیفه:</span>
-              <span>{resume.military}</span>
+              <span>{data?.data?.military}</span>
             </div>
 
             <div className="flex items-center gap-2 text-sm">
               <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               <span className="text-muted-foreground">سابقه کار:</span>
-              <span>{resume.experience}</span>
+              <span>{data?.data?.experience}</span>
             </div>
           </div>
 
@@ -120,19 +149,19 @@ export function ResumeDetails({ resume }: { resume: any }) {
               <div className="flex items-center gap-2 text-sm">
                 <GraduationCap className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                 <span className="text-muted-foreground">مدرک تحصیلی:</span>
-                <span>{resume.degree}</span>
+                <span>{data?.data?.degree}</span>
               </div>
 
               <div className="flex items-center gap-2 text-sm">
                 <Building className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                 <span className="text-muted-foreground">دانشگاه:</span>
-                <span>{resume.university}</span>
+                <span>{data?.data?.university}</span>
               </div>
 
               <div className="flex items-center gap-2 text-sm">
                 <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                 <span className="text-muted-foreground">رشته تحصیلی:</span>
-                <span>{resume.major}</span>
+                <span>{data?.data?.major}</span>
               </div>
             </div>
           </div>
@@ -142,16 +171,15 @@ export function ResumeDetails({ resume }: { resume: any }) {
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">توضیحات</h3>
             <div className="rounded-lg border p-4 whitespace-pre-line">
-              {resume.text}
+              {data?.data?.text}
             </div>
           </div>
 
           <div className="flex items-center justify-between text-sm text-muted-foreground">
             <div>
               <span>تاریخ ارسال: </span>
-              <span>{submissionDate}</span>
+              <span>{formatDate(data?.data?.created_at)}</span>
             </div>
-            {/* <div>{timeSinceSubmission}</div> */}
           </div>
         </CardContent>
       </Card>

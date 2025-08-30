@@ -1,25 +1,18 @@
-import { CommentDetails } from "@/components/comment-details";
-import { getCommentById } from "@/utils/server/comment";
+"use client";
 
-export default async function CommentPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  try {
-    const { id } = await params;
-    const comment = await getCommentById(Number.parseInt(id, 10));
-    return (
+import { CommentDetails } from "@/components/comment-details";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
+
+export default function CommentPage() {
+  return (
+    <QueryClientProvider client={queryClient}>
       <div className="my-6 mx-8 mt-12">
         <div className="max-w-[960px] mx-auto">
-          <CommentDetails comment={comment} />
+          <CommentDetails />
         </div>
       </div>
-    );
-  } catch (error) {
-    if (error instanceof Error && error.message === "No such comment") {
-      return <p>چنین پیامی یافت نشد...</p>;
-    }
-    return <p>مشکلی پیش امده دوباره تلاش کنید</p>;
-  }
+    </QueryClientProvider>
+  );
 }

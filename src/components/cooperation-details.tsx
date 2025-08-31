@@ -11,6 +11,7 @@ import {
   Phone,
   Printer,
   Smartphone,
+  Mail
 } from "lucide-react";
 import Link from "next/link";
 import { useRef } from "react";
@@ -120,6 +121,13 @@ export function CooperationDetails() {
                 <Smartphone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                 <span className="text-muted-foreground">موبایل :</span>
                 <span>{data?.data?.mobile}</span>
+              </div>
+            )}
+             {data?.data?.email && (
+              <div className="flex items-center gap-2 text-sm">
+                <Mail className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <span className="text-muted-foreground">ایمیل :</span>
+                <span>{data?.data?.email}</span>
               </div>
             )}
           </div>

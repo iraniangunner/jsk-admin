@@ -20,6 +20,7 @@ export interface CooperationResponse {
     company_name: string;
     phone: string;
     mobile: string;
+    email:string;
     address: string;
     type_cooperation: string[];
     file: string;

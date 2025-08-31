@@ -34,15 +34,6 @@ export const fetchCooperations = async (
   );
 };
 
-// export async function fetchCooperationById(id: string) {
-//   return await fetchWithAuth(
-//     ` ${process.env.NEXT_PUBLIC_API_URL}/companies-cooperation/${id}`,
-//     {
-//       method: "GET",
-//       cache: "no-store",
-//     }
-//   );
-// }
 
 export const fetchCooperationById = async (id: string): Promise<CooperationResponse> => {
   return await fetchWithAuth(

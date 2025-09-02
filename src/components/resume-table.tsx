@@ -46,7 +46,7 @@ import {
   ChevronLeftIcon,
 } from "lucide-react";
 import { ResumeSearchParams, Resume } from "@/types/resume-types";
-import { deleteResume, getResumes } from "@/hooks/use-resume";
+import { deleteResume, fetchResumes, getResumes } from "@/hooks/use-resume";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";

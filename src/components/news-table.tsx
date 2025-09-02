@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { CaretSortIcon} from "@radix-ui/react-icons";
+import { CaretSortIcon } from "@radix-ui/react-icons";
 import {
   type ColumnDef,
   type SortingState,
@@ -47,17 +47,9 @@ import {
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
-import { deleteProject, getProjects } from "@/hooks/use-project";
 import { Project, ProjectSearchParams } from "@/types/project-types";
-import { getCategories } from "@/hooks/use-category";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { deleteNews, getNews } from "@/hooks/use-news";
 
 const formatDate = (dateString: any) => {
   try {
@@ -69,30 +61,23 @@ const formatDate = (dateString: any) => {
 };
 
 interface Image {
-  full_path: string;
+  image_url: string;
 }
 
-export function ProjectTable() {
+export function NewsTable() {
   const [sorting, setSorting] = useState<SortingState>([
     { id: "created_at", desc: true },
   ]);
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [categoryId, setCategoryId] = useState<string>("");
   const [forcePage, setForcePage] = useState<number | undefined>(undefined);
 
   const searchParams: ProjectSearchParams = {
     page: page ? page : undefined,
     per_page: itemsPerPage ? itemsPerPage : undefined,
-    category_id: categoryId ? categoryId : undefined,
   };
 
-  const { data, isLoading, isError } = getProjects(searchParams);
-  const {
-    data: categories,
-    isLoading: categoriesLoading,
-    isError: categoryError,
-  } = getCategories();
+  const { data, isLoading, isError } = getNews(searchParams);
 
   const handlePageChange = (selectedItem: { selected: number }) => {
     setPage(selectedItem.selected + 1);
@@ -119,7 +104,7 @@ export function ProjectTable() {
             className="text-center w-full"
           >
             <CaretSortIcon className="ml-2 h-4 w-4" />
-            نام پروژه
+            عنوان خبر
           </Button>
         );
       },
@@ -129,31 +114,22 @@ export function ProjectTable() {
     },
 
     {
-      accessorKey: "images",
+      accessorKey: "image_url",
       header: () => <div className="text-center">تصویر</div>,
       cell: ({ row }) => {
-        const images = row.getValue("images") as Image[];
+        const image = row.getValue("image_url") as Image[];
         return (
           <div className="flex justify-center items-center">
             <div className="relative h-10 w-16 overflow-hidden rounded">
               <img
-                src={images[0].full_path || "/placeholder.svg"}
-                alt="تصویر پروژه"
+                src={`https://jsk-co.com/${image}` || "/placeholder.svg"}
+                alt="تصویر خبر"
                 className="object-cover"
               />
             </div>
           </div>
         );
       },
-    },
-    {
-      accessorKey: "employer",
-      header: ({ column }) => {
-        return <div className="text-center">کارفرما</div>;
-      },
-      cell: ({ row }) => (
-        <div className="text-center">{row.getValue("employer")}</div>
-      ),
     },
     {
       accessorKey: "created_at",
@@ -175,28 +151,18 @@ export function ProjectTable() {
       },
     },
     {
-      accessorKey: "location",
-      header: ({ column }) => {
-        return <div className="text-center">محل پروژه</div>;
-      },
-      cell: ({ row }) => (
-        <div className="text-center">{row.getValue("location")}</div>
-      ),
-    },
-    {
       id: "actions",
       header: ({ column }) => {
         return <div className="text-center">عملیات</div>;
       },
       cell: ({ row }) => {
-        const project = row.original;
+        const news = row.original;
         const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-        const { mutate: deleteProjectById, isPending: isDeleting } =
-          deleteProject();
+        const { mutate: deleteNewsById, isPending: isDeleting } = deleteNews();
 
         const handleDelete = () => {
-          deleteProjectById(project.id, {
+          deleteNewsById(news.id, {
             onSuccess: () => {
               toast.success("آیتم مورد نظر حذف شد");
               setShowDeleteDialog(false);
@@ -212,14 +178,14 @@ export function ProjectTable() {
               variant="ghost"
               size="icon"
               className="cursor-pointer"
-              title="ویرایش پروژه"
+              title="ویرایش خبر"
             >
               <Link
-                href={`/projects/${project.id}/edit`}
+                href={`/news/${news.id}/edit`}
                 className="w-full h-full flex justify-center items-center"
               >
                 <Edit className="h-4 w-4" />
-                <span className="sr-only">ویرایش پروژه</span>
+                <span className="sr-only">ویرایش خبر</span>
               </Link>
             </Button>
 
@@ -228,20 +194,20 @@ export function ProjectTable() {
               size="icon"
               onClick={() => setShowDeleteDialog(true)}
               className="text-destructive hover:bg-destructive/10 cursor-pointer"
-              title="حذف پروژه"
+              title="حذف خبر"
             >
               <Trash2 className="h-4 w-4" />
-              <span className="sr-only">حذف پروژه</span>
+              <span className="sr-only">حذف خبر</span>
             </Button>
 
             <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
               <DialogContent>
                 <DialogHeader>
-                <VisuallyHidden>
+                  <VisuallyHidden>
                     <DialogTitle>Hidden Dialog Title</DialogTitle>
                   </VisuallyHidden>
                   <DialogDescription className="sm:text-lg">
-                    آیا از حذف این پروژه اطمینان دارید؟
+                    آیا از حذف این خبر اطمینان دارید؟
                   </DialogDescription>
                 </DialogHeader>
                 <DialogFooter className="flex flex-row gap-2 justify-center">
@@ -292,12 +258,6 @@ export function ProjectTable() {
     },
   });
 
-  const handleCategoryChange = (value: string) => {
-    setCategoryId(value);
-    setPage(1);
-    setForcePage(0);
-  };
-
   useEffect(() => {
     if (forcePage !== undefined) {
       setForcePage(undefined);
@@ -311,47 +271,20 @@ export function ProjectTable() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle>مدیریت پروژه ها</CardTitle>
+              <CardTitle>مدیریت اخبار</CardTitle>
               <CardDescription>
-                لیست پروژه های شرکت، برای مرتب‌سازی بر اساس تاریخ
-                ثبت، روی ستون تاریخ ثبت کلیک کنید.
+                لیست اخبار شرکت، برای مرتب‌سازی بر اساس تاریخ ثبت، روی ستون
+                تاریخ ثبت کلیک کنید.
               </CardDescription>
             </div>
-            <Link href="/projects/create">
+            <Link href="/news/create">
               <Button className="cursor-pointer">
                 <Plus className="h-4 w-4 mr-2" />
-                افزودن پروژه جدید
+                افزودن خبر جدید
               </Button>
             </Link>
           </CardHeader>
           <CardContent>
-            <div className="py-4">
-              <div className="flex flex-col sm:flex-row items-center gap-3">
-                <div className="w-full max-w-sm">
-                  <Select
-                    value={categoryId}
-                    onValueChange={handleCategoryChange}
-                    disabled={categoriesLoading}
-                    dir="rtl"
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="جستجو بر اساس نوع دسته بندی" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {/* <SelectItem value="all">همه دسته بندی ها</SelectItem> */}
-                      {categories?.map((category: any) => (
-                        <SelectItem
-                          key={category.id}
-                          value={String(category.id)}
-                        >
-                          {category.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
             <div className="rounded-md border">
               <Table>
                 <TableHeader>

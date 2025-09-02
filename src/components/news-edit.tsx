@@ -28,32 +28,36 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { getSlideById, updateSlide } from "@/hooks/use-carousel";
+import { getNewsById, updateNews } from "@/hooks/use-news";
 
 const formSchema = z.object({
-  text: z.string().min(1, "متن فارسی الزامی است"),
-  text_en: z.string().optional(),
-  link: z.string().min(1, "لینک الزامی است"),
+  title: z.string().min(1, "عنوان فارسی الزامی است"),
+  title_en: z.string().min(1, "عنوان انگلیسی الزامی است"),
+  content: z.string().min(1, "متن فارسی الزامی است"),
+  content_en: z.string().min(1, "متن انگلیسی الزامی است"),
   image: z
     .any()
-    .optional()
-    .refine((files) => {
-      if (!files || files.length === 0) return true; // Optional for updates
-      const file = files[0];
-      return file.size <= 5120 * 1024; // 5MB max
-    }, "حداکثر حجم فایل 5 مگابایت است")
+    .optional() // تصویر اختیاری در update
     .refine((files) => {
       if (!files || files.length === 0) return true;
       const file = files[0];
-      return ["image/jpeg", "image/jpg", "image/png", "image/bmp"].includes(
-        file.type
-      );
-    }, "فرمت فایل باید jpg، jpeg، png یا bmp باشد"),
+      const allowedTypes = [
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/bmp",
+      ];
+      return allowedTypes.includes(file.type);
+    }, "فرمت فایل باید jpg، jpeg، png یا bmp باشد")
+    .refine((files) => {
+      if (!files || files.length === 0) return true;
+      const file = files[0];
+      return file.size <= 5 * 1024 * 1024; // حداکثر حجم 5MB
+    }, "حداکثر حجم فایل 5 مگابایت است"),
 });
-
 type FormData = z.infer<typeof formSchema>;
 
-export default function EditCarousel() {
+export default function EditNews() {
   const router = useRouter();
   const params = useParams();
   const id = (params?.id as string) || "1";
@@ -61,9 +65,10 @@ export default function EditCarousel() {
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      text: "",
-      text_en: "",
-      link: "",
+      title: "",
+      title_en: "",
+      content: "",
+      content_en: "",
     },
   });
 
@@ -71,19 +76,20 @@ export default function EditCarousel() {
   const [error, setError] = useState<string | null>(null);
 
   // Fetch slide data
-  const { data, isLoading, isError } = getSlideById(id);
+  const { data, isLoading, isError } = getNewsById(id);
 
   // Update mutation
-  const { mutate: updateSlideMutation, isPending: isSaving } = updateSlide();
+  const { mutate: updateNewsMutation, isPending: isSaving } = updateNews();
 
   useEffect(() => {
     if (data) {
       form.reset({
-        text: data.text || "",
-        text_en: data.text_en || "",
-        link: data.link || "",
+        title: data.title || "",
+        title_en: data.title_en || "",
+        content: data.content || "",
+        content_en: data.content_en || "",
       });
-      setImagePreview(data.full_path || "");
+      setImagePreview(data.image_url || "");
     }
   }, [data, form]);
 
@@ -108,9 +114,10 @@ export default function EditCarousel() {
       const formData = new FormData();
 
       // Add text fields to FormData
-      formData.append("text", values.text);
-      formData.append("text_en", values.text_en || "");
-      formData.append("link", values.link);
+      formData.append("title", values.title);
+      formData.append("title_en", values.title_en || "");
+      formData.append("content", values.content);
+      formData.append("content_en", values.content_en || "");
       formData.append("_method", "PUT");
 
       // Add image file if a new one was selected
@@ -119,19 +126,19 @@ export default function EditCarousel() {
       }
 
       // Call the update mutation with FormData
-      updateSlideMutation(
+      updateNewsMutation(
         { id, formData },
         {
           onSuccess: () => {
-            toast.success("اسلاید با موفقیت بروزرسانی شد");
+            toast.success("خبر با موفقیت بروزرسانی شد");
             setTimeout(() => {
               // toast.info("در حالت نمایشی، بازگشت به لیست غیرفعال است");
-              router.push("/slides");
+              router.push("/news");
             }, 1500);
           },
           onError: (error) => {
             console.error("Update failed:", error);
-            toast.error("خطا در بروزرسانی اسلاید. لطفا دوباره تلاش کنید.");
+            toast.error("خطا در بروزرسانی خبر. لطفا دوباره تلاش کنید.");
           },
         }
       );
@@ -164,7 +171,7 @@ export default function EditCarousel() {
         <p className="mb-6">{error || "اسلاید مورد نظر یافت نشد."}</p>
         <Button>
           <ArrowLeft className="ml-2 h-4 w-4" />
-          بازگشت به لیست اسلایدها
+          بازگشت به لیست اخبار
         </Button>
       </div>
     );
@@ -175,14 +182,11 @@ export default function EditCarousel() {
       <ToastContainer />
       <div className="container py-10 max-w-3xl mx-auto" dir="rtl">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">ویرایش اسلاید</h1>
+          <h1 className="text-2xl font-bold">ویرایش خبر</h1>
           <Button
             variant="outline"
             className="cursor-pointer bg-transparent"
-            onClick={() =>
-              // toast.info("در حالت نمایشی، بازگشت به لیست غیرفعال است")
-              router.push("/slides")
-            }
+            onClick={() => router.push("/news")}
           >
             <ArrowLeft className="ml-2 h-4 w-4" />
             بازگشت به لیست
@@ -191,9 +195,9 @@ export default function EditCarousel() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="mb-2">ویرایش اسلاید شماره {id}</CardTitle>
+            <CardTitle className="mb-2">ویرایش خبر شماره {id}</CardTitle>
             <CardDescription>
-              اطلاعات اسلاید را ویرایش کنید و دکمه ذخیره را بزنید.
+              اطلاعات خبر را ویرایش کنید و دکمه ذخیره را بزنید.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -203,9 +207,48 @@ export default function EditCarousel() {
                 className="space-y-6"
               >
                 <div className="grid gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="title"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="required mb-2">
+                            عنوان فارسی
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="عنوان فارسی خبر را وار کنید"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="title_en"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="mb-2">عنوان انگلیسی</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              dir="ltr"
+                              placeholder="Enter english title"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
                   <FormField
                     control={form.control}
-                    name="text"
+                    name="content"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="required mb-2">
@@ -214,7 +257,7 @@ export default function EditCarousel() {
                         <FormControl>
                           <Textarea
                             {...field}
-                            placeholder="متن فارسی اسلاید را وارد کنید"
+                            placeholder="متن فارسی خبر را وارد کنید"
                             className="min-h-[100px]"
                           />
                         </FormControl>
@@ -225,7 +268,7 @@ export default function EditCarousel() {
 
                   <FormField
                     control={form.control}
-                    name="text_en"
+                    name="content_en"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="mb-2">متن انگلیسی</FormLabel>
@@ -233,7 +276,7 @@ export default function EditCarousel() {
                           <Textarea
                             {...field}
                             dir="ltr"
-                            placeholder="Enter english text"
+                            placeholder="Enter english title"
                             className="min-h-[100px]"
                           />
                         </FormControl>
@@ -255,7 +298,10 @@ export default function EditCarousel() {
                             {imagePreview && (
                               <div className="relative h-[200px] w-full overflow-hidden rounded border">
                                 <img
-                                  src={imagePreview || "/placeholder.svg"}
+                                  src={
+                                    `https://jsk-co.com/${imagePreview}` ||
+                                    "/placeholder.svg"
+                                  }
                                   alt="پیش نمایش تصویر"
                                   className="object-contain w-full h-full"
                                 />
@@ -293,24 +339,6 @@ export default function EditCarousel() {
                       </FormItem>
                     )}
                   />
-
-                  <FormField
-                    control={form.control}
-                    name="link"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="required mb-2">پیوست</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            dir="ltr"
-                            placeholder="Enter the link"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
                 </div>
               </form>
             </Form>
@@ -321,7 +349,7 @@ export default function EditCarousel() {
               className="cursor-pointer bg-transparent"
               disabled={isSaving}
               onClick={() => {
-                router.push("/slides")
+                router.push("/news");
               }}
             >
               انصراف

@@ -90,7 +90,7 @@ export default function EditNews() {
         content: data.content || "",
         content_en: data.content_en || "",
       });
-      setImagePreview(data.image_url || "");
+      setImagePreview(`https://jsk-co.com/${data.image_url}` || "");
     }
   }, [data, form]);
 
@@ -341,7 +341,7 @@ export default function EditNews() {
                               <div className="relative h-[200px] w-full overflow-hidden rounded border">
                                 <img
                                   src={
-                                    `https://jsk-co.com/${imagePreview}` ||
+                                    `${imagePreview}` ||
                                     "/placeholder.svg"
                                   }
                                   alt="پیش نمایش تصویر"

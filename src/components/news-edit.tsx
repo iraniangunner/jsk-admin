@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { Loader2, ArrowLeft, ImageIcon } from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { getNewsById, updateNews } from "@/hooks/use-news";
+import { TextEditor } from "./text-editor";
 
 const formSchema = z.object({
   title: z.string().min(1, "عنوان فارسی الزامی است"),
@@ -246,7 +247,7 @@ export default function EditNews() {
                     />
                   </div>
 
-                  <FormField
+                  {/* <FormField
                     control={form.control}
                     name="content"
                     render={({ field }) => (
@@ -259,14 +260,36 @@ export default function EditNews() {
                             {...field}
                             placeholder="متن فارسی خبر را وارد کنید"
                             className="min-h-[100px]"
-                          />
+                          /> 
+                         
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  /> */}
+                  <Controller
+                    control={form.control}
+                    name="content"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="required mb-2">
+                          متن فارسی
+                        </FormLabel>
+                        <FormControl>
+                          <div className="border rounded-md p-2 min-h-[150px] bg-white">
+                            <TextEditor
+                              value={field.value}
+                              onChange={field.onChange}
+                              dir="rtl"
+                            />
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
 
-                  <FormField
+                  {/* <FormField
                     control={form.control}
                     name="content_en"
                     render={({ field }) => (
@@ -278,6 +301,25 @@ export default function EditNews() {
                             dir="ltr"
                             placeholder="Enter english title"
                             className="min-h-[100px]"
+                          />
+                         
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  /> */}
+
+                  <Controller
+                    control={form.control}
+                    name="content_en"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="mb-2">متن انگلیسی</FormLabel>
+                        <FormControl>
+                          <TextEditor
+                            value={field.value}
+                            onChange={field.onChange}
+                            dir="ltr"
                           />
                         </FormControl>
                         <FormMessage />

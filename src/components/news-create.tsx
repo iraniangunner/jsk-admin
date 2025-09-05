@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { Loader2, ArrowLeft, ImageIcon } from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import {
   Form,
@@ -28,6 +27,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { createNews } from "@/hooks/use-news";
+import { TextEditor } from "./text-editor";
 
 const formSchema = z.object({
   title: z.string().min(1, "عنوان فارسی الزامی است"),
@@ -198,11 +198,23 @@ export default function NewsCreate() {
                           متن فارسی
                         </FormLabel>
                         <FormControl>
-                          <Textarea
-                            {...field}
-                            placeholder="متن فارسی خبر را وارد کنید"
-                            className="min-h-[100px]"
-                          />
+                          <div className="border rounded-md p-2 min-h-[150px] bg-white">
+                            <TextEditor
+                              value={field.value || ""}
+                              onChange={(val) => {
+                                // مقدار رو تمیز کن
+                                const cleanValue =
+                                  val?.replace(/<[^>]+>/g, "").trim() || "";
+
+                                // مقدار رو توی فرم ست کن و ولیدیشن رو مجبور کن اجرا بشه
+                                form.setValue("content", cleanValue, {
+                                  shouldValidate: true,
+                                  shouldDirty: true,
+                                });
+                              }}
+                              dir="rtl"
+                            />
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -216,12 +228,20 @@ export default function NewsCreate() {
                       <FormItem>
                         <FormLabel className="mb-2">متن انگلیسی</FormLabel>
                         <FormControl>
-                          <Textarea
-                            {...field}
-                            dir="ltr"
-                            placeholder="Enter english content"
-                            className="min-h-[100px]"
-                          />
+                          <div className="border rounded-md p-2 min-h-[150px] bg-white">
+                            <TextEditor
+                              value={field.value || ""}
+                              onChange={(val) => {
+                                const cleanValue =
+                                  val?.replace(/<[^>]+>/g, "").trim() || "";
+                                form.setValue("content_en", cleanValue, {
+                                  shouldValidate: true,
+                                  shouldDirty: true,
+                                });
+                              }}
+                              dir="ltr"
+                            />
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>

@@ -247,27 +247,7 @@ export default function EditNews() {
                     />
                   </div>
 
-                  {/* <FormField
-                    control={form.control}
-                    name="content"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="required mb-2">
-                          متن فارسی
-                        </FormLabel>
-                        <FormControl>
-                          <Textarea
-                            {...field}
-                            placeholder="متن فارسی خبر را وارد کنید"
-                            className="min-h-[100px]"
-                          /> 
-                         
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  /> */}
-                  <Controller
+                  <FormField
                     control={form.control}
                     name="content"
                     render={({ field }) => (
@@ -278,8 +258,18 @@ export default function EditNews() {
                         <FormControl>
                           <div className="border rounded-md p-2 min-h-[150px] bg-white">
                             <TextEditor
-                              value={field.value}
-                              onChange={field.onChange}
+                              value={field.value || ""}
+                              onChange={(val) => {
+                                // مقدار رو تمیز کن
+                                const cleanValue =
+                                  val?.replace(/<[^>]+>/g, "").trim() || "";
+
+                                // مقدار رو توی فرم ست کن و ولیدیشن رو مجبور کن اجرا بشه
+                                form.setValue("content", cleanValue, {
+                                  shouldValidate: true,
+                                  shouldDirty: true,
+                                });
+                              }}
                               dir="rtl"
                             />
                           </div>
@@ -289,38 +279,27 @@ export default function EditNews() {
                     )}
                   />
 
-                  {/* <FormField
+                  <FormField
                     control={form.control}
                     name="content_en"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="mb-2">متن انگلیسی</FormLabel>
                         <FormControl>
-                          <Textarea
-                            {...field}
-                            dir="ltr"
-                            placeholder="Enter english title"
-                            className="min-h-[100px]"
-                          />
-                         
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  /> */}
-
-                  <Controller
-                    control={form.control}
-                    name="content_en"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="mb-2">متن انگلیسی</FormLabel>
-                        <FormControl>
-                          <TextEditor
-                            value={field.value}
-                            onChange={field.onChange}
-                            dir="ltr"
-                          />
+                          <div className="border rounded-md p-2 min-h-[150px] bg-white">
+                            <TextEditor
+                              value={field.value || ""}
+                              onChange={(val) => {
+                                const cleanValue =
+                                  val?.replace(/<[^>]+>/g, "").trim() || "";
+                                form.setValue("content_en", cleanValue, {
+                                  shouldValidate: true,
+                                  shouldDirty: true,
+                                });
+                              }}
+                              dir="ltr"
+                            />
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -340,10 +319,7 @@ export default function EditNews() {
                             {imagePreview && (
                               <div className="relative h-[200px] w-full overflow-hidden rounded border">
                                 <img
-                                  src={
-                                    `${imagePreview}` ||
-                                    "/placeholder.svg"
-                                  }
+                                  src={`${imagePreview}` || "/placeholder.svg"}
                                   alt="پیش نمایش تصویر"
                                   className="object-contain w-full h-full"
                                 />

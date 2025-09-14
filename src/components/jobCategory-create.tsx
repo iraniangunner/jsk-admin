@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { createJobCategory } from "@/hooks/use-jobCategory";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
@@ -49,7 +49,7 @@ export function CreateJobCategory() {
   const router = useRouter();
 
   const {
-    register,
+    control,
     handleSubmit,
     formState: { errors, isSubmitting },
     reset,
@@ -62,27 +62,23 @@ export function CreateJobCategory() {
     },
   });
 
-  // Create mutation
   const { mutate: createJobCategoryMutation, isPending: isSaving } =
     createJobCategory();
 
   const onSubmit = async (formData: JobCategoryFormData) => {
     try {
-      // Prepare data object
       const data = {
         title: formData.title.trim(),
         title_en: formData.title_en?.trim() || undefined,
         order: formData.order ? Number(formData.order) : undefined,
       };
 
-      // Call the create mutation
       createJobCategoryMutation(
         { data },
         {
           onSuccess: () => {
             toast.success("دسته بندی با موفقیت ایجاد شد");
-            reset(); // Reset form on success
-            // Navigate back to job cities list after successful creation
+            reset();
             setTimeout(() => {
               router.push("/job-categories");
             }, 1500);
@@ -124,15 +120,22 @@ export function CreateJobCategory() {
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <div className="grid gap-4">
+                {/* عنوان فارسی */}
                 <div className="grid gap-2">
                   <Label htmlFor="title" className="required mb-2">
                     عنوان فارسی
                   </Label>
-                  <Input
-                    id="title"
-                    {...register("title")}
-                    placeholder="عنوان فارسی دسته بندی را وارد کنید"
-                    className={errors.title ? "border-red-500" : ""}
+                  <Controller
+                    name="title"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        id="title"
+                        placeholder="عنوان فارسی دسته بندی را وارد کنید"
+                        className={errors.title ? "border-red-500" : ""}
+                        {...field}
+                      />
+                    )}
                   />
                   {errors.title && (
                     <p className="text-sm text-red-500">
@@ -141,16 +144,23 @@ export function CreateJobCategory() {
                   )}
                 </div>
 
+                {/* عنوان انگلیسی */}
                 <div className="grid gap-2">
                   <Label htmlFor="title_en" className="mb-2">
                     عنوان انگلیسی
                   </Label>
-                  <Input
-                    dir="ltr"
-                    id="title_en"
-                    {...register("title_en")}
-                    placeholder="Enter English title (optional)"
-                    className={errors.title_en ? "border-red-500" : ""}
+                  <Controller
+                    name="title_en"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        dir="ltr"
+                        id="title_en"
+                        placeholder="Enter English title (optional)"
+                        className={errors.title_en ? "border-red-500" : ""}
+                        {...field}
+                      />
+                    )}
                   />
                   {errors.title_en && (
                     <p className="text-sm text-red-500">
@@ -161,18 +171,25 @@ export function CreateJobCategory() {
 
                 <Separator className="my-2" />
 
+                {/* ترتیب نمایش */}
                 <div className="grid gap-2">
                   <Label htmlFor="order" className="mb-2">
                     ترتیب نمایش
                   </Label>
-                  <Input
-                    id="order"
-                    type="number"
-                    {...register("order")}
-                    placeholder="ترتیب نمایش (اختیاری)"
-                    min="1"
-                    max="255"
-                    className={errors.order ? "border-red-500" : ""}
+                  <Controller
+                    name="order"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        id="order"
+                        type="number"
+                        placeholder="ترتیب نمایش (اختیاری)"
+                        min="1"
+                        max="255"
+                        className={errors.order ? "border-red-500" : ""}
+                        {...field}
+                      />
+                    )}
                   />
                   {errors.order && (
                     <p className="text-sm text-red-500">

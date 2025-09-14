@@ -5,20 +5,20 @@ import { cookies } from "next/headers";
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 const RECAPTCHA_SECRET = process.env.NEXT_PUBLIC_RECAPTCHA_SECRET_KEY!;
 
-const cookieBase = {
-  httpOnly: true,
-  sameSite: "lax" as const,
-  path: "/",
-  secure: false,
-};
-
 // const cookieBase = {
 //   httpOnly: true,
-//   sameSite: "none" as const,
+//   sameSite: "lax" as const,
 //   path: "/",
-//   secure: true,
-//   domain: ".jsk-co.com",
+//   secure: false,
 // };
+
+const cookieBase = {
+  httpOnly: true,
+  sameSite: "none" as const,
+  path: "/",
+  secure: true,
+  domain: ".jsk-co.com",
+};
 
 type LoginResp = {
   access_token: string;

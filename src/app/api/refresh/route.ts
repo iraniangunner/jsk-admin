@@ -21,20 +21,20 @@ export async function POST() {
   }
 
  // بروز رسانی cookie ها
-  const cookieBase = {
-    httpOnly: true,
-    sameSite: "lax" as const,
-    path: "/",
-    secure: false,
-  };
+  // const cookieBase = {
+  //   httpOnly: true,
+  //   sameSite: "lax" as const,
+  //   path: "/",
+  //   secure: false,
+  // };
 
-//   const cookieBase = {
-//   httpOnly: true,
-//   sameSite: "none" as const,
-//   path: "/",
-//   secure: true,
-//   domain: ".jsk-co.com",
-// };
+  const cookieBase = {
+  httpOnly: true,
+  sameSite: "none" as const,
+  path: "/",
+  secure: true,
+  domain: ".jsk-co.com",
+};
 
   const expiresAt = Date.now() + data.expires_in * 1000;
 
